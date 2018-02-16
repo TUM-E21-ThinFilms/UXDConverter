@@ -13,6 +13,8 @@ class MeasurementContext(object):
         self.xray_width = 0.1  # unit: mm
         self.saturation_threshold = 3.5e5  # unit: None
         self.knife_edge = False  # Whether or not the measurement was carried out with a knife edge.
+        self.average_overlapping = False
+        self.normalization = None
         # If a knife edge was used, no illumination correction is done.
 
 
@@ -27,15 +29,29 @@ class Measurement(object):
     def get_headers(self):
         return self._headers
 
+    def get_data_region_x(self):
+        """
+        Returns the data region for the x-variable (i.e. theta)
+        :return: (max, min)
+        """
+        max = np.amax(self._data, axis=0)[0]
+        min = np.amin(self._data, axis=0)[0]
+
+        return max, min
+
 
 class Measurements(object):
-    def __init__(self, header, measurements, measurement_context):
+    def __init__(self, header, measurements, backgrounds, measurement_context):
         self._header = header
         self._measurement = measurements
+        self._background_measurement = backgrounds
         self._measurement_context = measurement_context
 
     def get_headers(self):
         return self._header
+
+    def set_context(self, context):
+        self._measurement_context = context
 
     def get_context(self):
         """
@@ -51,7 +67,14 @@ class Measurements(object):
         return self._measurement[index]
 
     def get_measurements(self):
+        """
+
+        :return list(Measurement):
+        """
         return self._measurement
+
+    def get_background_measurements(self):
+        return self._background_measurement
 
 
 class MeasurementsParser(object):
@@ -102,11 +125,15 @@ class MeasurementsParser(object):
         header = ms_parser.parse_header(raw_header)
 
         parsed_measurements = []
+        parsed_backgrounds = []
 
         for measurement in measurements:
             parsed_measurements.append(ms_parser.parse(measurement))
 
-        return Measurements(header, parsed_measurements, context)
+        if len(parsed_measurements) > 1:
+            parsed_backgrounds.append(parsed_measurements.pop())
+
+        return Measurements(header, parsed_measurements, parsed_backgrounds, context)
 
 
 class MeasurementParser(object):
@@ -329,6 +356,12 @@ def merge(measurement_1, measurement_2, scaling_factor=None, averaging=False):
     data_left = np.array([x for x in measurement_1.get_data() if x[0] < overlap_region[1]])
     data_right = np.array([x for x in measurement_2.get_data() if x[0] > overlap_region[0]])
 
+    if len(data_right) == 0:
+        data_right = [[0, 0, 0]]
+
+    if len(data_left) == 0:
+        data_left = [[0, 0, 0]]
+
     scaling_array = np.array([1, scaling_factor, 1])
 
     if diff >= 0:
@@ -466,6 +499,27 @@ def convert_to_qz(measurement, context):
     return Measurement(measurement.get_headers(), data)
 
 
+def multi_merge(measurements, context):
+    """
+    Merges a list of measurements together into one
+
+    :param list(Measurement) measurements:
+    :return Measurement:
+    """
+
+    measurement = measurements[0]
+
+    if len(measurements) > 1:
+        # merge all measurements together
+        merged = measurement
+        for i in range(len(measurements) - 1):
+            merged = merge(merged, measurements[i + 1], averaging=context.average_overlapping)
+
+        measurement = merged
+
+    return measurement
+
+
 def convert_measurement(measurements):
     """
     Converts the measurements into a single measurement, by merging, subtracting and correcting the measurements in
@@ -481,33 +535,28 @@ def convert_measurement(measurements):
     """
 
     mss = measurements.get_measurements()
+    backgrounds = measurements.get_background_measurements()
     context = measurements.get_context()
 
     # default measurement.
-    measurement = mss[0]
+    if len(mss) == 0:
+        raise ValueError("Cannot convert if no measurement was given.")
 
-    if len(mss) > 1:
-        background = mss[-1]
+    measurement = multi_merge(mss, context)
 
-        # merge all measurements together
-        merged = mss[0]
-        for i in range(len(mss[:-1]) - 1):
-            merged = merge(merged, mss[i + 1])
+    # If we have any background, subtract it from the measurement
+    if len(backgrounds) > 0:
+        background = multi_merge(backgrounds, context)
 
-        # now subtract the background
-        measurement = merged
-        measurement = subtract(merged, background)
-
-    else:
-        # if we have only one measurement, then we already picked it
-        pass
+        # Do the subtraction: measurement - background
+        measurement = subtract(measurement, background)
 
     measurement = calculate_errors(measurement)
 
     if context.knife_edge is False:
         measurement = perform_illumination_correction(measurement, context)
 
-    measurement = normalize(measurement, 'flank')
+    measurement = normalize(measurement, context.normalization)
 
     measurement = convert_to_qz(measurement, context)
     return measurement
@@ -554,6 +603,9 @@ def normalize(measurement, method='max'):
     :param method: supported methods are: 'max', 'flank'
     :return:
     """
+    if method is None:
+        method = 'flank'
+
     if method == 'max':
         """
          Just find the point with the most counts per second, and normalize this point to 1. The scaling factor is 
@@ -585,12 +637,12 @@ def normalize(measurement, method='max'):
         norm = 1.0 / data[idx][1]
         return Measurement(measurement.get_headers(), data * np.array([1, norm, norm]))
 
+    if isinstance(method, float):
+        data = measurement.get_data()
+        return Measurement(measurement.get_headers(), data * np.array([1, method, method]))
 
-global picked
-picked = []
 
-
-def plot(measurement):
+def plot(measurement, names=None):
     """
     Plots the measurement.
 
@@ -603,16 +655,57 @@ def plot(measurement):
     if not isinstance(measurement, list):
         measurement = [measurement]
 
+    if not names is None and not len(names) == len(measurement):
+        raise ValueError("Given names must have the same length as measurements")
+    handles = []
     for ms in measurement:
         data = ms.get_data()
         x = [x[0] for x in data]
         y = [x[1] for x in data]
         y_err = [x[2] for x in data]
 
-        plt.errorbar(x, y, yerr=y_err)
+        handles.append(plt.errorbar(x, y, yerr=y_err))
+
+    if not names is None:
+        plt.legend(handles, names)
 
     plt.yscale('log')
     plt.show()
+
+
+def interactive_plot(measurement):
+    data = measurement.get_data()
+
+    x = [x[0] for x in data]
+    y = [x[1] for x in data]
+    global picked, norm
+    picked = []
+    norm = None
+
+    plt.plot   (x, y)
+    plt.yscale('log')
+    # plt.show()
+
+    def on_click(event):
+        global picked
+        if event.button == 1:
+            if event.inaxes:
+                print('Picked coords %f %f' % (event.xdata, event.ydata))
+                picked.append((event.xdata, event.ydata))
+
+    def on_keyboard(event):
+        global picked, norm
+        if event.key == 'x' and len(picked) > 0:
+            norm = picked[-1]
+            picked = []
+
+
+    plt.gcf().canvas.mpl_connect('button_press_event', on_click)
+    plt.gcf().canvas.mpl_connect('key_press_event', on_keyboard)
+    plt.show()
+
+    return norm
+
 
 
 def get_logger(name):
