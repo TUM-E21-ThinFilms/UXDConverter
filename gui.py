@@ -208,7 +208,7 @@ class Ui_UXDConverter(object):
         self.radioButton_manual.setToolTip(_translate("UXDConverter", "Normalize all points using the given scaling factor"))
         self.radioButton_manual.setText(_translate("UXDConverter", "manual"))
         self.lineEdit_normalization_factor.setText(_translate("UXDConverter", "1,0"))
-        self.pushbutton_select_graph.setToolTip(_translate("UXDConverter", "Select a scaling factor from graph. Click on graph and press \'s\' button"))
+        self.pushbutton_select_graph.setToolTip(_translate("UXDConverter", "Select a scaling factor from graph. Click on graph and press \'x\' button or double click"))
         self.pushbutton_select_graph.setText(_translate("UXDConverter", "Select from graph"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("UXDConverter", "Settings"))
         self.pushButton_convert.setToolTip(_translate("UXDConverter", "Convert the measurements and save into output file"))

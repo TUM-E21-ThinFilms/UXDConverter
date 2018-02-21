@@ -1,7 +1,12 @@
 from converter import *
+import codecs
 from gui import Ui_UXDConverter
 from PyQt5.QtWidgets import QFileDialog, QTreeWidgetItem, QHeaderView, QMessageBox
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal, QObject
+
+
+class SignalPropagator(QObject):
+    sig = pyqtSignal(list)
 
 
 class Controller(object):
@@ -41,6 +46,14 @@ class Controller(object):
         self.ui.pushButton_plot.clicked.connect(self.plot)
         self.ui.pushbutton_select_graph.clicked.connect(self.plot_with_selection)
 
+    def update_manual_normalization(self, xy_data_point):
+        if xy_data_point is None:
+            return
+
+        norm = 1 / float(xy_data_point[1])
+        print("Normalization factor: %s" % str(norm))
+        self.ui.lineEdit_normalization_factor.setText(str(norm))
+
     def read_file(self, file=None):
         if file is None:
             file = self.ui.lineEdit_input.text()
@@ -51,7 +64,7 @@ class Controller(object):
         self.measurements = None
 
         try:
-            self.measurements = MeasurementsParser(open(file, 'r'), self.logger).parse()
+            self.measurements = MeasurementsParser(codecs.open(file, 'r', encoding='utf-8', errors='ignore'), self.logger).parse()
         except BaseException as e:
             self.logger.exception(e)
 
@@ -59,6 +72,8 @@ class Controller(object):
 
     def select_file_input(self):
         file = QFileDialog.getOpenFileName()[0]
+        if file is "":
+            return
         self.ui.lineEdit_input.setText(file)
         self.read_file(file)
         self.ui.lineEdit_output.setText(file.replace('.UXD', '') + ".dat")
@@ -67,6 +82,8 @@ class Controller(object):
         self.ui.lineEdit_output.setText(QFileDialog.getOpenFileName()[0])
 
     def add_measurement(self, measurement, name, id, is_background=False):
+        #context = self.create_context()
+
         item = QTreeWidgetItem(self.ui.measurements)
         item.setFlags(item.flags() | Qt.ItemIsSelectable)
         item.setText(0, name)
@@ -76,6 +93,7 @@ class Controller(object):
         region = QTreeWidgetItem(item)
         data_region = measurement.get_data_region_x()
         region.setText(0, "Theta [deg]: %s ... %s" % (data_region[1], data_region[0]))
+        #region.setText(1, "Qz [Ang]: %s ... %s" % (datapoint_to_qz(data_region[1], context), datapoint_to_qz(data_region[0], context)))
         region.setFlags(region.flags() ^ Qt.ItemIsSelectable)
 
         include = QTreeWidgetItem(item)
@@ -103,19 +121,33 @@ class Controller(object):
         self.ui.measurements.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         self.ui.measurements.header().setSectionResizeMode(1, QHeaderView.ResizeToContents)
 
-    def convert(self, context=None):
+    def convert(self):
         output = self.ui.lineEdit_output.text()
         if output is "":
             msg = QMessageBox()
             msg.warning(None, "No output file", "No output file given")
             return
 
-        #if context is None or not isinstance(context, MeasurementContext):
-        #    context = self.create_context()
-
         measurements = self.setup_measurement()
 
-        #self.measurements.set_context(context)
+        output_path = os.path.dirname(os.path.realpath(output))
+
+        try:
+            if not os.path.exists(output_path):
+                msg = QMessageBox()
+                ret = msg.information(None, "Output Directory",
+                                      "The directory does not exist. Do you want to create it?",
+                                      buttons=QMessageBox.Ok | QMessageBox.Cancel)
+                if ret == QMessageBox.Cancel:
+                    return
+
+                os.mkdir(output_path)
+        except:
+            self.logger.warning('Exception while creating path %s', output_path)
+            pass
+
+
+
         try:
             ms = convert_measurement(measurements)
         except BaseException as e:
@@ -195,7 +227,6 @@ class Controller(object):
 
         return Measurements(self.measurements.get_headers(), measurements, background, self.create_context())
 
-
     def plot_with_selection(self):
         context = self.create_context()
         context.normalization = 1.0
@@ -203,13 +234,14 @@ class Controller(object):
         self.measurements.set_context(context)
         ms = convert_measurement(self.measurements)
 
-        selection = interactive_plot(ms)
+        signalPropagator = SignalPropagator()
+        signalPropagator.sig.connect(self.update_manual_normalization)
+        selection = interactive_plot(ms, signalPropagator)
 
         if selection is None:
             return
 
         self.ui.lineEdit_normalization_factor.setText(str(1.0 / selection[1]))
-
 
     def create_context(self):
         context = MeasurementContext()

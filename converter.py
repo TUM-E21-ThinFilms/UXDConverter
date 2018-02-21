@@ -1,3 +1,4 @@
+import codecs
 import numpy as np
 import os
 import glob
@@ -356,20 +357,16 @@ def merge(measurement_1, measurement_2, scaling_factor=None, averaging=False):
     data_left = np.array([x for x in measurement_1.get_data() if x[0] < overlap_region[1]])
     data_right = np.array([x for x in measurement_2.get_data() if x[0] > overlap_region[0]])
 
-    if len(data_right) == 0:
-        data_right = [[0, 0, 0]]
-
-    if len(data_left) == 0:
-        data_left = [[0, 0, 0]]
-
     scaling_array = np.array([1, scaling_factor, 1])
 
     if diff >= 0:
         # measurement_1 is bigger, hence scale measurement 2
-        data_right = data_right * scaling_array
+        if len(data_right) > 0:
+            data_right = data_right * scaling_array
         overlap_data_2 = overlap_data_2 * scaling_array
     else:
-        data_left = data_left * scaling_array
+        if len(data_left) > 0:
+            data_left = data_left * scaling_array
         overlap_data_1 = overlap_data_1 * scaling_array
 
     # Now we can perform the merging :)
@@ -382,11 +379,19 @@ def merge(measurement_1, measurement_2, scaling_factor=None, averaging=False):
     else:
         # as the middle part, take the measurements which were not scaled.
         if diff >= 0:
-            data_middle = np.array(overlap_data_1)
+            data_middle = overlap_data_1
         else:
-            data_middle = np.array(overlap_data_2)
+            data_middle = overlap_data_2
 
-    return Measurement(measurement_1.get_headers(), np.concatenate((data_left, data_middle, data_right)))
+    # Now ,just use the data where there is actually any data
+    data = [data_left, data_middle, data_right]
+    if len(data_left) == 0:
+        data = data[1:]
+    if len(data_right) == 0:
+        data = data[:-1]
+    data = np.concatenate(tuple(data))
+
+    return Measurement(measurement_1.get_headers(), data)
 
 
 def subtract(measurement_1, measurement_2):
@@ -498,6 +503,15 @@ def convert_to_qz(measurement, context):
 
     return Measurement(measurement.get_headers(), data)
 
+def datapoint_to_qz(theta_data_point, context):
+    """
+    Computes the q_z value of a data point (i.e. theta value)
+    :param float theta_data_point:
+    :param MeasurementContext context:
+    :return: qz value in angstrom
+    """
+    return 4 * np.pi / context.wavelength * np.sin(theta_data_point * np.pi / 180)
+
 
 def multi_merge(measurements, context):
     """
@@ -572,7 +586,7 @@ def export_to_dat(measurement, file):
     :return:
     """
 
-    fp = open(file, 'w')
+    fp = codecs.open(file, 'w')
     data = measurement.get_data()
 
     # write out at most 1000 lines. Parratt cannot handle more than that...
@@ -664,7 +678,7 @@ def plot(measurement, names=None):
         y = [x[1] for x in data]
         y_err = [x[2] for x in data]
 
-        handles.append(plt.errorbar(x, y, yerr=y_err))
+        handles.append(plt.errorbar(x, y, yerr=y_err, markeredgewidth=1, capsize=2))
 
     if not names is None:
         plt.legend(handles, names)
@@ -673,7 +687,7 @@ def plot(measurement, names=None):
     plt.show()
 
 
-def interactive_plot(measurement):
+def interactive_plot(measurement, signal=None):
     data = measurement.get_data()
 
     x = [x[0] for x in data]
@@ -682,16 +696,22 @@ def interactive_plot(measurement):
     picked = []
     norm = None
 
-    plt.plot   (x, y)
+    plt.plot(x, y)
     plt.yscale('log')
+
     # plt.show()
 
     def on_click(event):
-        global picked
+        global picked, norm
         if event.button == 1:
             if event.inaxes:
                 print('Picked coords %f %f' % (event.xdata, event.ydata))
                 picked.append((event.xdata, event.ydata))
+
+        if event.dblclick:
+            norm = [event.xdata, event.ydata]
+            if not signal is None:
+                signal.sig.emit(norm)
 
     def on_keyboard(event):
         global picked, norm
@@ -699,13 +719,11 @@ def interactive_plot(measurement):
             norm = picked[-1]
             picked = []
 
-
     plt.gcf().canvas.mpl_connect('button_press_event', on_click)
     plt.gcf().canvas.mpl_connect('key_press_event', on_keyboard)
     plt.show()
 
     return norm
-
 
 
 def get_logger(name):

@@ -329,7 +329,7 @@
                    <item>
                     <widget class="QPushButton" name="pushbutton_select_graph">
                      <property name="toolTip">
-                      <string>Select a scaling factor from graph. Click on graph and press 's' button</string>
+                      <string>Select a scaling factor from graph. Click on graph and press 'x' button or double click</string>
                      </property>
                      <property name="text">
                       <string>Select from graph</string>
