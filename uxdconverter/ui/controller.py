@@ -1,6 +1,14 @@
-from converter import *
+import os
 import codecs
-from gui import Ui_UXDConverter
+import logging
+
+from uxdconverter.ui.gui import Ui_UXDConverter
+from uxdconverter.ui.graph import Plotting
+from uxdconverter.parser import MeasurementsParser
+from uxdconverter.converter import Converter
+from uxdconverter.exporter import FileExporter, ParrattExportAlgorithm
+from uxdconverter.measurement import MeasurementContext, Measurements
+
 from PyQt5.QtWidgets import QFileDialog, QTreeWidgetItem, QHeaderView, QMessageBox
 from PyQt5.QtCore import Qt, pyqtSignal, QObject
 
@@ -10,16 +18,14 @@ class SignalPropagator(QObject):
 
 
 class Controller(object):
-    def __init__(self, ui, app):
-        """
+    def __init__(self, ui: Ui_UXDConverter, app):
 
-        :param Ui_UXDConverter ui:
-        """
         self.app = app
         self.ui = ui
-        self.setup()
         self.logger = self.get_logger(__name__)
         self.measurements = None
+        self._plotting = Plotting()
+        self.setup()
 
     def get_logger(self, name):
         """
@@ -64,7 +70,8 @@ class Controller(object):
         self.measurements = None
 
         try:
-            self.measurements = MeasurementsParser(codecs.open(file, 'r', encoding='utf-8', errors='ignore'), self.logger).parse()
+            self.measurements = MeasurementsParser(codecs.open(file, 'r', encoding='utf-8', errors='ignore'),
+                                                   self.logger).parse()
         except BaseException as e:
             self.logger.exception(e)
 
@@ -82,7 +89,7 @@ class Controller(object):
         self.ui.lineEdit_output.setText(QFileDialog.getOpenFileName()[0])
 
     def add_measurement(self, measurement, name, id, is_background=False):
-        #context = self.create_context()
+        # context = self.create_context()
 
         item = QTreeWidgetItem(self.ui.measurements)
         item.setFlags(item.flags() | Qt.ItemIsSelectable)
@@ -93,7 +100,7 @@ class Controller(object):
         region = QTreeWidgetItem(item)
         data_region = measurement.get_data_region_x()
         region.setText(0, "Theta [deg]: %s ... %s" % (data_region[1], data_region[0]))
-        #region.setText(1, "Qz [Ang]: %s ... %s" % (datapoint_to_qz(data_region[1], context), datapoint_to_qz(data_region[0], context)))
+        # region.setText(1, "Qz [Ang]: %s ... %s" % (datapoint_to_qz(data_region[1], context), datapoint_to_qz(data_region[0], context)))
         region.setFlags(region.flags() ^ Qt.ItemIsSelectable)
 
         include = QTreeWidgetItem(item)
@@ -146,10 +153,8 @@ class Controller(object):
             self.logger.warning('Exception while creating path %s', output_path)
             pass
 
-
-
         try:
-            ms = convert_measurement(measurements)
+            ms = Converter(measurements).convert()
         except BaseException as e:
             self.logger.exception(e)
             return
@@ -162,10 +167,11 @@ class Controller(object):
             if ret == QMessageBox.Cancel:
                 return
 
-        export_to_dat(ms, output)
+        exporter = FileExporter(output, ParrattExportAlgorithm())
+        exporter.do_export(ms)
 
         if self.ui.checkBox_view_plot.isChecked():
-            plot(ms)
+            self._plotting.plot([ms])
 
     def plot(self):
 
@@ -194,7 +200,7 @@ class Controller(object):
         if len(measurements + background) == 0:
             return
 
-        plot(measurements + background, names_measurement + names_background)
+        self._plotting.plot(measurements + background, names_measurement + names_background)
 
     def setup_measurement(self):
         measurements = []
@@ -232,11 +238,12 @@ class Controller(object):
         context.normalization = 1.0
 
         self.measurements.set_context(context)
-        ms = convert_measurement(self.measurements)
+        ms = Converter(self.measurements).convert()
+        # ms = convert_measurement(self.measurements)
 
         signalPropagator = SignalPropagator()
         signalPropagator.sig.connect(self.update_manual_normalization)
-        selection = interactive_plot(ms, signalPropagator)
+        selection = self._plotting.interactive_plot(ms, signalPropagator)
 
         if selection is None:
             return

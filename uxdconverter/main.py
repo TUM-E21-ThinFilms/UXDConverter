@@ -1,6 +1,6 @@
-from PyQt5 import QtCore, QtGui, QtWidgets
-from gui import Ui_UXDConverter
-from controller import Controller
+from PyQt5 import QtWidgets
+from uxdconverter.ui.gui import Ui_UXDConverter
+from uxdconverter.ui.controller import Controller
 
 if __name__ == "__main__":
     import sys
