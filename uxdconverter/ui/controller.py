@@ -130,8 +130,6 @@ class Controller(object):
 
     def convert(self):
 
-        print("converting...")
-
         output = self.ui.lineEdit_output.text()
         if output is "":
             msg = QMessageBox()
