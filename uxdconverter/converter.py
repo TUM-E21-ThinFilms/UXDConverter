@@ -53,8 +53,6 @@ class Converter(object):
             # Do the subtraction: measurement - background
             measurement = self._subtract.subtract(measurement, background)
 
-        measurement = self._qz_calc.manipulate(measurement, context)
-
         if context.knife_edge is False:
             measurement = self._illumination.manipulate(measurement, context)
 

@@ -129,6 +129,9 @@ class Controller(object):
         self.ui.measurements.header().setSectionResizeMode(1, QHeaderView.ResizeToContents)
 
     def convert(self):
+
+        print("converting...")
+
         output = self.ui.lineEdit_output.text()
         if output is "":
             msg = QMessageBox()
@@ -154,6 +157,7 @@ class Controller(object):
             pass
 
         try:
+
             ms = Converter(measurements).convert()
         except BaseException as e:
             self.logger.exception(e)

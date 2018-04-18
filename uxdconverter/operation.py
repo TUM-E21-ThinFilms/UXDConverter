@@ -313,6 +313,8 @@ class QzCalculation(AbstractDataManipulation):
         data = list(measurement.get_data())
 
         for i in range(len(data)):
+            print(context.wavelength, data[i][0], pre_factor * np.sin(data[i][0] * np.pi / 180))
             data[i][0] = pre_factor * np.sin(data[i][0] * np.pi / 180)
+
 
         return Measurement(measurement.get_headers(), data)
