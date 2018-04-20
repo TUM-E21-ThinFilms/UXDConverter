@@ -10,7 +10,8 @@ class MeasurementContext(object):
         self.knife_edge = False  # Whether or not the measurement was carried out with a knife edge.
         self.average_overlapping = False  # If a knife edge was used, no illumination correction is done.
         self.normalization = None  # Type of normalization method.
-
+        self.qz_range = (0, 1)
+        self.qz_conversion = True
 
 class Measurement(object):
     def __init__(self, headers, data):
@@ -18,7 +19,7 @@ class Measurement(object):
         self._data = np.array(data)
 
     def get_data(self):
-        return self._data
+        return np.copy(self._data)
 
     def get_headers(self):
         return self._headers

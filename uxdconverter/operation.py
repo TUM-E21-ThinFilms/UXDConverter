@@ -200,7 +200,7 @@ class DataNormalization(AbstractDataManipulation):
              Just find the point with the most counts per second, and normalize this point to 1. The scaling factor is 
              applied to every point.
             """
-            data = list(measurement.get_data())
+            data = measurement.get_data()
             max = np.amax([x[1] for x in data])
             norm = 1.0 / max
             return Measurement(measurement.get_headers(), data * np.array([1, norm, norm]))
@@ -212,15 +212,19 @@ class DataNormalization(AbstractDataManipulation):
              reflection) and find there the point with the slope nearest to zero, i.e. with the smallest absolute gradient.
             """
 
-            data = list(measurement.get_data())
+            data = measurement.get_data()
             # Find the first flank via the gradient.
             deriv = np.gradient([x[1] for x in data], [x[0] for x in data])
             first_flank = np.argmin(deriv)
 
-            # Now look at the points left to the first flank, and find the smalles absolute slope.
-            vf = np.vectorize(abs)
-            left_deriv = vf(deriv[0:first_flank])
-            idx = np.argmin(left_deriv)
+
+            if first_flank == 0:
+                idx = 0
+            else:
+                # Now look at the points left to the first flank, and find the smallest absolute slope.
+                vf = np.vectorize(abs)
+                left_deriv = vf(deriv[0:first_flank])
+                idx = np.argmin(left_deriv)
 
             # The scaling factor is then 1 / y_c, where y_c is the point with the lowest absolute slope
             norm = 1.0 / data[idx][1]
@@ -261,7 +265,7 @@ class DataIlluminationCorrection(AbstractDataManipulation):
         # in the docstring, \theta_c denoted, in degree
         critical_angle = np.arcsin(w / l) * 180 / np.pi
         # make a copy of the data, so we do not modify the data from the measurement (i.e. measurement is immutable)
-        data = list(measurement.get_data())
+        data = measurement.get_data()
 
         pre_scaling = float(w) / l
 
@@ -310,10 +314,34 @@ class QzCalculation(AbstractDataManipulation):
         pre_factor = 4 * np.pi / context.wavelength
 
         # make a copy
-        data = list(measurement.get_data())
+        data = measurement.get_data()
 
         for i in range(len(data)):
             data[i][0] = pre_factor * np.sin(data[i][0] * np.pi / 180)
 
 
         return Measurement(measurement.get_headers(), data)
+
+class QzCropping(AbstractDataManipulation):
+    def manipulate(self, measurement: Measurement, context: MeasurementContext) -> Measurement:
+        """
+            Crops the qz data, i.e. removes data which does not lie in the interval
+                [qz_min, qz_max], where qz_min, qz_max are defined from context.qz_range
+
+        :param Measurement measurement:
+        :param MeasurementContext context:
+        :return:
+        """
+
+        data = measurement.get_data()
+
+        new_data = []
+
+        qz_min = context.qz_range[0]
+        qz_max = context.qz_range[1]
+
+        for i in range(len(data)):
+            if qz_min <= data[i][0] <= qz_max:
+                new_data.append(data[i])
+
+        return Measurement(measurement.get_headers(), np.array(new_data))

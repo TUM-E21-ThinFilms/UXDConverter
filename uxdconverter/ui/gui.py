@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'gui.ui'
 #
-# Created by: PyQt5 UI code generator 5.10
+# Created by: PyQt5 UI code generator 5.10.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -123,6 +123,25 @@ class Ui_UXDConverter(object):
         self.checkbox_average = QtWidgets.QCheckBox(self.groupBox)
         self.checkbox_average.setObjectName("checkbox_average")
         self.formLayout.setWidget(5, QtWidgets.QFormLayout.FieldRole, self.checkbox_average)
+        self.label_cropping = QtWidgets.QLabel(self.groupBox)
+        self.label_cropping.setObjectName("label_cropping")
+        self.formLayout.setWidget(7, QtWidgets.QFormLayout.LabelRole, self.label_cropping)
+        self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_4.setObjectName("horizontalLayout_4")
+        self.lineEdit_qz_range_min = QtWidgets.QLineEdit(self.groupBox)
+        self.lineEdit_qz_range_min.setObjectName("lineEdit_qz_range_min")
+        self.horizontalLayout_4.addWidget(self.lineEdit_qz_range_min)
+        self.lineEdit_qz_range_max = QtWidgets.QLineEdit(self.groupBox)
+        self.lineEdit_qz_range_max.setObjectName("lineEdit_qz_range_max")
+        self.horizontalLayout_4.addWidget(self.lineEdit_qz_range_max)
+        self.formLayout.setLayout(7, QtWidgets.QFormLayout.FieldRole, self.horizontalLayout_4)
+        self.label_9 = QtWidgets.QLabel(self.groupBox)
+        self.label_9.setObjectName("label_9")
+        self.formLayout.setWidget(6, QtWidgets.QFormLayout.LabelRole, self.label_9)
+        self.checkBox_convert_qz = QtWidgets.QCheckBox(self.groupBox)
+        self.checkBox_convert_qz.setChecked(True)
+        self.checkBox_convert_qz.setObjectName("checkBox_convert_qz")
+        self.formLayout.setWidget(6, QtWidgets.QFormLayout.FieldRole, self.checkBox_convert_qz)
         self.gridLayout_7.addLayout(self.formLayout, 0, 0, 1, 1)
         self.gridLayout_5.addWidget(self.groupBox, 0, 0, 1, 1)
         self.groupBox_2 = QtWidgets.QGroupBox(self.tab_2)
@@ -168,11 +187,14 @@ class Ui_UXDConverter(object):
         self.horizontalLayout_2.addWidget(self.checkBox_view_plot)
         spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem1)
+        self.pushButton_preview = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_preview.setObjectName("pushButton_preview")
+        self.horizontalLayout_2.addWidget(self.pushButton_preview)
         self.gridLayout_2.addLayout(self.horizontalLayout_2, 1, 0, 1, 1)
         UXDConverter.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(UXDConverter)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(UXDConverter)
 
     def retranslateUi(self, UXDConverter):
@@ -185,7 +207,7 @@ class Ui_UXDConverter(object):
         self.measurements.headerItem().setText(0, _translate("UXDConverter", "asd"))
         self.measurements.headerItem().setText(1, _translate("UXDConverter", "2"))
         self.pushButton_plot.setToolTip(_translate("UXDConverter", "Plot the selected measurements in a theta-intensity graph"))
-        self.pushButton_plot.setText(_translate("UXDConverter", "Plot"))
+        self.pushButton_plot.setText(_translate("UXDConverter", "Plot selected measurements"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("UXDConverter", "Measurement"))
         self.groupBox.setTitle(_translate("UXDConverter", "Measurement Context"))
         self.label_4.setText(_translate("UXDConverter", "X-Ray wavelength [A]"))
@@ -200,6 +222,11 @@ class Ui_UXDConverter(object):
         self.label_7.setText(_translate("UXDConverter", "Average overlapping data"))
         self.checkbox_average.setToolTip(_translate("UXDConverter", "Average data on overlapping regions"))
         self.checkbox_average.setText(_translate("UXDConverter", "Enabled"))
+        self.label_cropping.setText(_translate("UXDConverter", "Qz range [A⁻1]"))
+        self.lineEdit_qz_range_min.setText(_translate("UXDConverter", "0,01"))
+        self.lineEdit_qz_range_max.setText(_translate("UXDConverter", "0,2"))
+        self.label_9.setText(_translate("UXDConverter", "Convert to Qz"))
+        self.checkBox_convert_qz.setText(_translate("UXDConverter", "Enabled"))
         self.groupBox_2.setTitle(_translate("UXDConverter", "Normalization"))
         self.radioButton_maximum.setToolTip(_translate("UXDConverter", "Normalize the maximal counts per second to 1"))
         self.radioButton_maximum.setText(_translate("UXDConverter", "maximum"))
@@ -214,6 +241,7 @@ class Ui_UXDConverter(object):
         self.pushButton_convert.setToolTip(_translate("UXDConverter", "Convert the measurements and save into output file"))
         self.pushButton_convert.setText(_translate("UXDConverter", "Convert"))
         self.checkBox_view_plot.setText(_translate("UXDConverter", "Plot after Conversion"))
+        self.pushButton_preview.setText(_translate("UXDConverter", "Preview"))
 
 
 if __name__ == "__main__":

@@ -8,7 +8,7 @@ from uxdconverter.parser import MeasurementsParser
 
 from uxdconverter.measurement import Measurements, Measurement
 from uxdconverter.operation import MultiMerger, MeasurementMerger, MeasurementSubtraction, DataIlluminationCorrection, \
-    DataNormalization, QzCalculation
+    DataNormalization, QzCalculation, QzCropping
 
 
 class Converter(object):
@@ -22,6 +22,7 @@ class Converter(object):
         self._illumination = DataIlluminationCorrection()
         self._normalization = DataNormalization()
         self._qz_calc = QzCalculation()
+        self._cropping = QzCropping()
 
     def convert(self) -> Measurement:
         """
@@ -58,7 +59,11 @@ class Converter(object):
 
         measurement = self._normalization.manipulate(measurement, context)
 
-        measurement = self._qz_calc.manipulate(measurement, context)
+        if self._context.qz_conversion is True:
+            measurement = self._qz_calc.manipulate(measurement, context)
+
+        measurement = self._cropping.manipulate(measurement, context)
+
         return measurement
 
 

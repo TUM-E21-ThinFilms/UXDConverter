@@ -91,7 +91,7 @@
            <enum>QTabWidget::Rounded</enum>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="tab">
            <attribute name="title">
@@ -162,7 +162,7 @@
                    <string>Plot the selected measurements in a theta-intensity graph</string>
                   </property>
                   <property name="text">
-                   <string>Plot</string>
+                   <string>Plot selected measurements</string>
                   </property>
                  </widget>
                 </item>
@@ -266,6 +266,48 @@
                      </property>
                      <property name="text">
                       <string>Enabled</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="7" column="0">
+                    <widget class="QLabel" name="label_cropping">
+                     <property name="text">
+                      <string>Qz range [A⁻1]</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="7" column="1">
+                    <layout class="QHBoxLayout" name="horizontalLayout_4">
+                     <item>
+                      <widget class="QLineEdit" name="lineEdit_qz_range_min">
+                       <property name="text">
+                        <string>0,01</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLineEdit" name="lineEdit_qz_range_max">
+                       <property name="text">
+                        <string>0,2</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item row="6" column="0">
+                    <widget class="QLabel" name="label_9">
+                     <property name="text">
+                      <string>Convert to Qz</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="6" column="1">
+                    <widget class="QCheckBox" name="checkBox_convert_qz">
+                     <property name="text">
+                      <string>Enabled</string>
+                     </property>
+                     <property name="checked">
+                      <bool>true</bool>
                      </property>
                     </widget>
                    </item>
@@ -385,6 +427,13 @@
          </size>
         </property>
        </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_preview">
+        <property name="text">
+         <string>Preview</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>

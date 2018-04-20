@@ -51,6 +51,8 @@ class Controller(object):
         self.ui.pushButton_convert.clicked.connect(self.convert)
         self.ui.pushButton_plot.clicked.connect(self.plot)
         self.ui.pushbutton_select_graph.clicked.connect(self.plot_with_selection)
+        self.ui.pushButton_preview.clicked.connect(self.plot_preview)
+        self.ui.checkBox_convert_qz.clicked.connect(self.update_label_cropping)
 
     def update_manual_normalization(self, xy_data_point):
         if xy_data_point is None:
@@ -204,6 +206,18 @@ class Controller(object):
 
         self._plotting.plot(measurements + background, names_measurement + names_background)
 
+    def plot_preview(self):
+        measurements = self.setup_measurement()
+
+        try:
+
+            ms = Converter(measurements).convert()
+        except BaseException as e:
+            self.logger.exception(e)
+            return
+
+        self._plotting.plot([ms])
+
     def setup_measurement(self):
         measurements = []
         background = []
@@ -252,6 +266,12 @@ class Controller(object):
 
         self.ui.lineEdit_normalization_factor.setText(str(1.0 / selection[1]))
 
+    def update_label_cropping(self):
+        if self.ui.checkBox_convert_qz.isChecked():
+            self.ui.label_cropping.setText("Qz range [A^-1]")
+        else:
+            self.ui.label_cropping.setText("2 Theta range [deg]")
+
     def create_context(self):
         context = MeasurementContext()
         context.wavelength = float(self.ui.lineEdit_wavelength.text().replace(',', '.'))
@@ -259,6 +279,10 @@ class Controller(object):
         context.knife_edge = bool(self.ui.checkBox_knifeedge.isChecked())
         context.sample_length = float(self.ui.lineEdit_sample_length.text().replace(',', '.'))
         context.xray_width = float(self.ui.lineEdit_beam_width.text().replace(',', '.'))
+        context.qz_conversion = bool(self.ui.checkBox_convert_qz.isChecked())
+
+        range_1, range_2 = float(self.ui.lineEdit_qz_range_min.text().replace(',', '.')), float(self.ui.lineEdit_qz_range_max.text().replace(',', '.'))
+        context.qz_range = (min(range_1, range_2), max(range_1, range_2))
 
         if self.ui.radioButton_flank.isChecked():
             context.normalization = 'flank'
