@@ -24,6 +24,7 @@ class Controller(object):
         self.ui = ui
         self.logger = self.get_logger(__name__)
         self.measurements = None
+        self.files = []
         self._plotting = Plotting()
         self.setup()
 
@@ -47,12 +48,17 @@ class Controller(object):
     def setup(self):
         self.ui.pushButton_input.clicked.connect(self.select_file_input)
         self.ui.pushButton_output.clicked.connect(self.select_file_output)
-        self.ui.lineEdit_input.returnPressed.connect(self.read_file)
+        #self.ui.lineEdit_input.returnPressed.connect(self.read_file)
         self.ui.pushButton_convert.clicked.connect(self.convert)
         self.ui.pushButton_plot.clicked.connect(self.plot)
         self.ui.pushbutton_select_graph.clicked.connect(self.plot_with_selection)
         self.ui.pushButton_preview.clicked.connect(self.plot_preview)
         self.ui.checkBox_convert_qz.clicked.connect(self.update_label_cropping)
+
+
+        self.ui.pushButton_deletefile.clicked.connect(self.delete_file)
+        self.ui.pushButton_addfile.clicked.connect(self.add_file)
+        self.ui.pushButton_resetfile.clicked.connect(self.reset)
 
     def update_manual_normalization(self, xy_data_point):
         if xy_data_point is None:
@@ -62,30 +68,128 @@ class Controller(object):
         print("Normalization factor: %s" % str(norm))
         self.ui.lineEdit_normalization_factor.setText(str(norm))
 
-    def read_file(self, file=None):
-        if file is None:
+    def check_file(self, file):
+        try:
+            self.measurements = MeasurementsParser(codecs.open(file, 'r', encoding='utf-8', errors='ignore'),
+                                               self.logger).parse()
+
+            return self.measurements.get_count_measurements()
+
+        except BaseException as e:
+            self.logger.exception(e)
+            return 0
+
+    def reset(self, arbitrary_qt_data=None, message_box=True):
+        if message_box is True:
+            msg = QMessageBox()
+            ret = msg.information(None, "Reset files",
+                                  "Are you sure to reset all files?",
+                                  buttons=QMessageBox.Ok | QMessageBox.Cancel)
+            if ret == QMessageBox.Cancel:
+                return
+
+
+        self.ui.lineEdit_input.setText("")
+        self.ui.lineEdit_output.setText("")
+        self.measurements = None
+        self.files = []
+        self.update_measurement_view()
+        self.update_file_list()
+
+    def delete_file(self):
+        root = self.ui.treeWidget_file.invisibleRootItem()
+        child_count = root.childCount()
+        for i in reversed(range(child_count)):
+            item = root.child(i)
+
+            if item.isSelected():
+                index = item.data(0, Qt.UserRole)
+                del self.files[index]
+
+        self.read_files()
+        if len(self.files) == 0:
+            self.reset(False)
+        self.update_file_list()
+        self.update_measurement_view()
+
+    def read_files(self):
+
+        self.measurements = None
+        for file in self.files:
+            try:
+                ms = MeasurementsParser(codecs.open(file, 'r', encoding='utf-8', errors='ignore'), self.logger).parse()
+
+                if self.measurements is None:
+                    self.measurements = ms
+                else:
+                    self.measurements = self.measurements.merge(ms)
+
+            except BaseException as e:
+                self.logger.exception(e)
+
+        self.update_measurement_view()
+
+    def add_file(self, file=None):
+        if file is None or not isinstance(file, str):
             file = self.ui.lineEdit_input.text()
 
         if file is "":
             return
 
-        self.measurements = None
+        # check for duplicate files
+        for f in self.files:
+            if file == f:
+                msg = QMessageBox()
+                ret = msg.information(None, "Input file", "The selected input file already exists in the file list. ",
+                                      buttons=QMessageBox.Ok)
+                return
 
-        try:
-            self.measurements = MeasurementsParser(codecs.open(file, 'r', encoding='utf-8', errors='ignore'),
-                                                   self.logger).parse()
-        except BaseException as e:
-            self.logger.exception(e)
+        if self.check_file(file) == 0:
+            msg = QMessageBox()
+            ret = msg.information(None, "Input file", "Could not read file %s." % file,
+                                  buttons=QMessageBox.Ok)
+            return
 
-        self.update_measurement_view()
+
+        self.files.append(file)
+        self.update_file_list()
+        self.read_files()
+
+    def update_file_list(self):
+        self.ui.treeWidget_file.clear()
+        if self.files is []:
+            return
+
+        for i, file in enumerate(self.files):
+            item = QTreeWidgetItem(self.ui.treeWidget_file)
+            item.setFlags(item.flags() | Qt.ItemIsSelectable)
+            item.setText(0, "File %s" % self.shortify_path(file, 55))#
+
+            fullpath = QTreeWidgetItem(item)
+            fullpath.setText(0, "Path: %s" % file)
+            fullpath.setFlags(fullpath.flags() ^ Qt.ItemIsSelectable)
+
+            mscount = QTreeWidgetItem(item)
+            mscount.setText(0, "Measurement count: %s" % self.check_file(file))
+            mscount.setFlags(mscount.flags() ^ Qt.ItemIsSelectable)
+            item.setData(0, Qt.UserRole, i)
+
+        #self.ui.treeWidget_file.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        #self.ui.treeWidget_file.header().setSectionResizeMode(1, QHeaderView.ResizeToContents)
 
     def select_file_input(self):
-        file = QFileDialog.getOpenFileName()[0]
-        if file is "":
+        files = QFileDialog.getOpenFileNames(filter="UXD File (*.uxd);; All *.*")[0]
+        if len(files) == 0:
             return
-        self.ui.lineEdit_input.setText(file)
-        self.read_file(file)
-        self.ui.lineEdit_output.setText(file.replace('.UXD', '') + ".dat")
+
+        self.ui.lineEdit_input.setText(files[0])
+        if self.ui.lineEdit_output.text() is "":
+            self.ui.lineEdit_output.setText(files[0].replace('.UXD', '') + ".dat")
+
+        if len(files) > 1:
+            for f in files:
+                self.add_file(f)
+
 
     def select_file_output(self):
         self.ui.lineEdit_output.setText(QFileDialog.getOpenFileName()[0])
@@ -292,3 +396,26 @@ class Controller(object):
             context.normalization = float(self.ui.lineEdit_normalization_factor.text().replace(',', '.'))
 
         return context
+
+    def shortify_path(self, path, length):
+
+        if len(path) <= length:
+            return path
+
+        if length <= 0:
+            return path[-length + 1:]
+
+        path = os.path.normpath(path)
+        file = os.path.split(path)[1]
+
+        if len(file) > length:
+            return "..." + file[-length:]
+
+        mod_path = path
+        prev_file = file
+        while len(file) < length:
+            prev_file = file
+            mod_path = os.path.dirname(mod_path)
+            file = path[+len(mod_path)-len(path):]
+
+        return "..." + prev_file

@@ -70,3 +70,7 @@ class Measurements(object):
 
     def get_background_measurements(self):
         return self._background_measurement
+
+
+    def merge(self, mss : 'Measurements') -> 'Measurements':
+        return Measurements(self._header, self.get_measurements() + mss.get_measurements(), self.get_background_measurements() + mss.get_background_measurements(), self._measurement_context)

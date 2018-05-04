@@ -32,52 +32,7 @@
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <layout class="QGridLayout" name="gridLayout">
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Output file</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QPushButton" name="pushButton_input">
-            <property name="text">
-             <string>Browse</string>
-            </property>
-            <property name="checkable">
-             <bool>false</bool>
-            </property>
-            <property name="flat">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>Input file</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLineEdit" name="lineEdit_output"/>
-          </item>
-          <item row="1" column="2">
-           <widget class="QPushButton" name="pushButton_output">
-            <property name="text">
-             <string>Browse</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="lineEdit_input">
-            <property name="dragEnabled">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <layout class="QGridLayout" name="gridLayout"/>
         </item>
         <item>
          <widget class="QTabWidget" name="tabWidget">
@@ -91,8 +46,136 @@
            <enum>QTabWidget::Rounded</enum>
           </property>
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
+          <widget class="QWidget" name="tab_3">
+           <attribute name="title">
+            <string>File</string>
+           </attribute>
+           <layout class="QGridLayout" name="gridLayout_9">
+            <item row="7" column="0">
+             <layout class="QHBoxLayout" name="horizontalLayout_5">
+              <item>
+               <widget class="QLabel" name="label_2">
+                <property name="text">
+                 <string>Output file</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="lineEdit_output"/>
+              </item>
+              <item>
+               <widget class="QPushButton" name="pushButton_output">
+                <property name="text">
+                 <string>Browse</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item row="0" column="0">
+             <layout class="QHBoxLayout" name="horizontalLayout_6">
+              <item>
+               <widget class="QLabel" name="label">
+                <property name="text">
+                 <string>Add file</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="lineEdit_input">
+                <property name="dragEnabled">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="pushButton_input">
+                <property name="text">
+                 <string>Browse</string>
+                </property>
+                <property name="checkable">
+                 <bool>false</bool>
+                </property>
+                <property name="flat">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="pushButton_addfile">
+                <property name="toolTip">
+                 <string>Add a file to the file list</string>
+                </property>
+                <property name="text">
+                 <string>Add file</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item row="6" column="0">
+             <layout class="QGridLayout" name="gridLayout_8">
+              <item row="0" column="0">
+               <widget class="QTreeWidget" name="treeWidget_file">
+                <property name="toolTip">
+                 <string/>
+                </property>
+                <property name="selectionMode">
+                 <enum>QAbstractItemView::ExtendedSelection</enum>
+                </property>
+                <attribute name="headerVisible">
+                 <bool>false</bool>
+                </attribute>
+                <column>
+                 <property name="text">
+                  <string notr="true">1</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <layout class="QHBoxLayout" name="horizontalLayout_7">
+                <item>
+                 <widget class="QPushButton" name="pushButton_deletefile">
+                  <property name="toolTip">
+                   <string>Delete the selected files from file list</string>
+                  </property>
+                  <property name="text">
+                   <string>Delete selected file</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="pushButton_resetfile">
+                  <property name="toolTip">
+                   <string>Reset the file list</string>
+                  </property>
+                  <property name="text">
+                   <string>Reset files</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_3">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
           <widget class="QWidget" name="tab">
            <attribute name="title">
             <string>Measurement</string>
@@ -248,7 +331,7 @@
                    <item row="3" column="1">
                     <widget class="QLineEdit" name="lineEdit_sample_length">
                      <property name="text">
-                      <string>10,0</string>
+                      <string>20,0</string>
                      </property>
                     </widget>
                    </item>
@@ -288,7 +371,7 @@
                      <item>
                       <widget class="QLineEdit" name="lineEdit_qz_range_max">
                        <property name="text">
-                        <string>0,2</string>
+                        <string>0,5</string>
                        </property>
                       </widget>
                      </item>
@@ -430,6 +513,9 @@
       </item>
       <item>
        <widget class="QPushButton" name="pushButton_preview">
+        <property name="toolTip">
+         <string>Preview the conversion</string>
+        </property>
         <property name="text">
          <string>Preview</string>
         </property>

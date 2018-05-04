@@ -1,14 +1,6 @@
-"""import os
-import glob
-import argparse
-import logging
-
-from uxdconverter.parser import MeasurementsParser
-"""
-
 from uxdconverter.measurement import Measurements, Measurement
 from uxdconverter.operation import MultiMerger, MeasurementMerger, MeasurementSubtraction, DataIlluminationCorrection, \
-    DataNormalization, QzCalculation, QzCropping
+    DataNormalization, QzCalculation, QzCropping, ErrorCalculation
 
 
 class Converter(object):
@@ -23,6 +15,7 @@ class Converter(object):
         self._normalization = DataNormalization()
         self._qz_calc = QzCalculation()
         self._cropping = QzCropping()
+        self._error = ErrorCalculation()
 
     def convert(self) -> Measurement:
         """
@@ -57,72 +50,13 @@ class Converter(object):
         if context.knife_edge is False:
             measurement = self._illumination.manipulate(measurement, context)
 
-        measurement = self._normalization.manipulate(measurement, context)
+        measurement = self._error.manipulate(measurement, context)
 
         if self._context.qz_conversion is True:
             measurement = self._qz_calc.manipulate(measurement, context)
 
         measurement = self._cropping.manipulate(measurement, context)
 
+        measurement = self._normalization.manipulate(measurement, context)
+
         return measurement
-
-
-"""
-def get_logger(name):
-    logger = logging.getLogger(name)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
-    return logger
-
-
-def main():
-    parser = argparse.ArgumentParser(description='Process input directory to convert .UXD files to .dat files')
-    parser.add_argument('-d', '--directory', type=str, nargs='?', help='directory to search for .UXD files',
-                        default=os.getcwd())
-    parser.add_argument('-f', '--file', type=str, nargs='?', help='a file to convert .UXD to .dat', default=None)
-    parser.add_argument('-v', '--verbose', type=bool, nargs='?', help='print logging messages', default=False)
-    args = parser.parse_args()
-    path = args.directory
-    file = args.file
-    verbose = args.verbose
-
-    logger = get_logger(__name__)
-    if verbose:
-        logger.setLevel(logging.DEBUG)
-    else:
-        logger.setLevel(logging.WARNING)
-
-    if file is not None:
-        files = [file]
-    else:
-        files = glob.glob(path + "/*.UXD")
-
-    if len(files) == 0:
-        raise ValueError("No .uxd files found")
-
-    output_path = os.path.dirname(os.path.realpath(files[0])) + "/dat/"
-    try:
-        if not os.path.exists(output_path):
-            os.mkdir(output_path)
-    except:
-        logger.warning('Exception while creating path %s', output_path)
-        pass
-
-    for file in files:
-        output_name = output_path + os.path.basename(file).replace("UXD", "dat")
-        logger.info("Converting file %s to %s ...", file, output_name)
-        mss = MeasurementsParser(open(file, 'r'), logger).parse()
-        ms = convert_measurement(mss)
-        export_to_dat(ms, output_name)
-
-        plot([ms])
-
-    return 0
-
-
-if __name__ == '__main__':
-    main()
-"""
