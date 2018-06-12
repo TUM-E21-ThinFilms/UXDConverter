@@ -1,6 +1,6 @@
 import numpy as np
+import codecs
 from uxdconverter.measurement import MeasurementContext, Measurement, Measurements
-
 
 class MeasurementsParser(object):
     def __init__(self, file_obj, logger):
@@ -15,13 +15,21 @@ class MeasurementsParser(object):
 
         # i.e.
         # measurements = [general_header, header_and_measurement_1, header_and_measurement_2, ... header_and_measurement_n]
+
+        try:
+            file = codecs.open(self._file, 'r', encoding='utf-8', errors='ignore')
+        except:
+            raise RuntimeError("Could not open file %s" % self._file)
+
+
+
         measurements = [[]]
 
         measurement_number = 0
 
-        self._file.seek(0)
+        file.seek(0)
 
-        for line in self._file:
+        for line in file:
             # This is the mark for a data set with headers. After this mark,
             # a few headers (context data) for a measurement and the measurement itself
             # is located
@@ -129,3 +137,4 @@ class MeasurementParser(object):
         raw_header, raw_data = self._split_measurement_from_header(raw)
 
         return Measurement(self._parse_header(raw_header), self._parse_data(raw_data))
+

@@ -3,6 +3,7 @@ from typing import List
 from uxdconverter.measurement import Measurement, MeasurementContext
 from uxdconverter.compare import Comparator
 
+from math import log
 
 class AbstractMeasurementMerger(object):
     def merge(self, measurement_1: Measurement, measurement_2: Measurement) -> Measurement:
@@ -67,20 +68,36 @@ class MeasurementMerger(AbstractMeasurementMerger):
             # scaling_factor = np.average([overlap_data_1[i][1] / overlap_data_2[i][1] for i in range(len(overlap_data_1))])
             scaling_factor = sum([x[1] for x in overlap_data_1]) / sum([x[1] for x in overlap_data_2])
             if scaling_factor < 1:
-                scaling_factor = 1 / scaling_factor
+                scaling_factor = 1.0 / scaling_factor
 
         # figure out, which measurement has bigger values in the overlapping region
         # then we scale the other measurement.
-        diff = 0
-        for i in range(len(overlap_data_1)):
-            diff += (overlap_data_1[i][1] - overlap_data_2[i][1])
+        diff = sum([overlap_data_1[i][1] - overlap_data_2[i][1] for i in range(len(overlap_data_1))])
 
+        if diff >= 0:
+            print("Scaling measurement 2 with %f by %f" % (scaling_factor, diff))
+            # measurement 1 is bigger, hence scale measurement 2
+            measurement_2.scale_y(scaling_factor)
+        else:
+            print("Scaling measurement 1 with %f by %f" % (scaling_factor, diff))
+            measurement_1.scale_y(scaling_factor)
+
+
+        data_left = []
+        data_right = []
         # Already calculate the left and right data regions. They need to be scaled in the next step.
-        data_left = np.array([x for x in measurement_1.get_data() if x[0] < overlap_region[1]])
-        data_right = np.array([x for x in measurement_2.get_data() if x[0] > overlap_region[0]])
+        # Choose the regions, such that we keep most of the data...
+        if measurement_1.get_data_region_x()[1] <= measurement_2.get_data_region_x()[1]:
+            data_left = np.array([x for x in measurement_1.get_data() if x[0] < overlap_region[1]])
+        else:
+            data_left = np.array([x for x in measurement_2.get_data() if x[0] < overlap_region[1]])
 
-        scaling_array = np.array([1, scaling_factor, 1])
+        if measurement_1.get_data_region_x()[0] >= measurement_2.get_data_region_x()[0]:
+            data_right = np.array([x for x in measurement_1.get_data() if x[0] > overlap_region[0]])
+        else:
+            data_right = np.array([x for x in measurement_2.get_data() if x[0] > overlap_region[0]])
 
+        """
         if diff >= 0:
             # measurement_1 is bigger, hence scale measurement 2
             if len(data_right) > 0:
@@ -90,6 +107,7 @@ class MeasurementMerger(AbstractMeasurementMerger):
             if len(data_left) > 0:
                 data_left = data_left * scaling_array
             overlap_data_1 = overlap_data_1 * scaling_array
+        """
 
         # Now we can perform the merging :)
         # The left region comes from measurement_1
@@ -120,7 +138,27 @@ class MultiMerger(object):
     def __init__(self, merger_class: AbstractMeasurementMerger):
         self._merger = merger_class
 
+    def sort(self, measurements: List[Measurement]) -> List[Measurement]:
+        """
+        Sort a list of measurements in such a way, that one can make the most efficient and best
+        merging of them.
+        What we mean by 'efficient' and 'best' merging:
+            The first measurement should be the measurement with the most statistics, i.e. most of the counts. So this
+            will probably be the measurement with the lowest theta angle.
+            Then order in such a way, that every measurement overlaps with the previous measurement.
+
+        So, what we do: Sort the measurements by the angles in an ascending order.
+        :param measurement:
+        :return:
+        """
+        mss = [(ms.get_data_region_x()[1], ms) for ms in measurements]
+        mss.sort(key=lambda x: x[0])
+        return [ms[1] for ms in mss]
+
     def merge(self, measurements: List[Measurement]) -> Measurement:
+
+        measurements = self.sort(measurements)
+
         measurement = measurements[0]
 
         if len(measurements) > 1:
@@ -216,7 +254,6 @@ class DataNormalization(AbstractDataManipulation):
             # Find the first flank via the gradient.
             deriv = np.gradient([x[1] for x in data], [x[0] for x in data])
             first_flank = np.argmin(deriv)
-
 
             if first_flank == 0:
                 idx = 0
@@ -319,8 +356,8 @@ class QzCalculation(AbstractDataManipulation):
         for i in range(len(data)):
             data[i][0] = pre_factor * np.sin(data[i][0] * np.pi / 180)
 
-
         return Measurement(measurement.get_headers(), data)
+
 
 class QzCropping(AbstractDataManipulation):
     def manipulate(self, measurement: Measurement, context: MeasurementContext) -> Measurement:

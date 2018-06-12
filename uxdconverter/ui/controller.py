@@ -1,10 +1,8 @@
 import os
-import codecs
 import logging
 
 from uxdconverter.ui.gui import Ui_UXDConverter
 from uxdconverter.ui.graph import Plotting
-from uxdconverter.parser import MeasurementsParser
 from uxdconverter.converter import Converter
 from uxdconverter.exporter import FileExporter, ParrattExportAlgorithm
 from uxdconverter.measurement import MeasurementContext, Measurements
@@ -12,6 +10,7 @@ from uxdconverter.measurement import MeasurementContext, Measurements
 from PyQt5.QtWidgets import QFileDialog, QTreeWidgetItem, QHeaderView, QMessageBox
 from PyQt5.QtCore import Qt, pyqtSignal, QObject
 
+from uxdconverter.generalparser import FileParser
 
 class SignalPropagator(QObject):
     sig = pyqtSignal(list)
@@ -27,6 +26,7 @@ class Controller(object):
         self.files = []
         self._plotting = Plotting()
         self.setup()
+        self._parser = FileParser()
 
     def get_logger(self, name):
         """
@@ -48,13 +48,12 @@ class Controller(object):
     def setup(self):
         self.ui.pushButton_input.clicked.connect(self.select_file_input)
         self.ui.pushButton_output.clicked.connect(self.select_file_output)
-        #self.ui.lineEdit_input.returnPressed.connect(self.read_file)
+        # self.ui.lineEdit_input.returnPressed.connect(self.read_file)
         self.ui.pushButton_convert.clicked.connect(self.convert)
         self.ui.pushButton_plot.clicked.connect(self.plot)
         self.ui.pushbutton_select_graph.clicked.connect(self.plot_with_selection)
         self.ui.pushButton_preview.clicked.connect(self.plot_preview)
         self.ui.checkBox_convert_qz.clicked.connect(self.update_label_cropping)
-
 
         self.ui.pushButton_deletefile.clicked.connect(self.delete_file)
         self.ui.pushButton_addfile.clicked.connect(self.add_file)
@@ -70,14 +69,16 @@ class Controller(object):
 
     def check_file(self, file):
         try:
-            self.measurements = MeasurementsParser(codecs.open(file, 'r', encoding='utf-8', errors='ignore'),
-                                               self.logger).parse()
 
-            return self.measurements.get_count_measurements()
+            ms = self._parser.parse(file, self.logger)
+
+            if ms is not None:
+                return ms.get_count_measurements()
 
         except BaseException as e:
             self.logger.exception(e)
-            return 0
+
+        return 0
 
     def reset(self, arbitrary_qt_data=None, message_box=True):
         if message_box is True:
@@ -87,7 +88,6 @@ class Controller(object):
                                   buttons=QMessageBox.Ok | QMessageBox.Cancel)
             if ret == QMessageBox.Cancel:
                 return
-
 
         self.ui.lineEdit_input.setText("")
         self.ui.lineEdit_output.setText("")
@@ -106,23 +106,23 @@ class Controller(object):
                 index = item.data(0, Qt.UserRole)
                 del self.files[index]
 
-        self.read_files()
         if len(self.files) == 0:
-            self.reset(False)
+            self.reset(message_box=False)
+
         self.update_file_list()
-        self.update_measurement_view()
+        self.read_files()
 
     def read_files(self):
 
         self.measurements = None
         for file in self.files:
             try:
-                ms = MeasurementsParser(codecs.open(file, 'r', encoding='utf-8', errors='ignore'), self.logger).parse()
+                ms = self._parser.parse(file, self.logger)
 
                 if self.measurements is None:
                     self.measurements = ms
                 else:
-                    self.measurements = self.measurements.merge(ms)
+                    self.measurements.add(ms)
 
             except BaseException as e:
                 self.logger.exception(e)
@@ -150,7 +150,6 @@ class Controller(object):
                                   buttons=QMessageBox.Ok)
             return
 
-
         self.files.append(file)
         self.update_file_list()
         self.read_files()
@@ -163,7 +162,7 @@ class Controller(object):
         for i, file in enumerate(self.files):
             item = QTreeWidgetItem(self.ui.treeWidget_file)
             item.setFlags(item.flags() | Qt.ItemIsSelectable)
-            item.setText(0, "File %s" % self.shortify_path(file, 55))#
+            item.setText(0, "File %s" % self.shortify_path(file, 55))  #
 
             fullpath = QTreeWidgetItem(item)
             fullpath.setText(0, "Path: %s" % file)
@@ -174,22 +173,19 @@ class Controller(object):
             mscount.setFlags(mscount.flags() ^ Qt.ItemIsSelectable)
             item.setData(0, Qt.UserRole, i)
 
-        #self.ui.treeWidget_file.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        #self.ui.treeWidget_file.header().setSectionResizeMode(1, QHeaderView.ResizeToContents)
-
     def select_file_input(self):
-        files = QFileDialog.getOpenFileNames(filter="UXD File (*.uxd);; All *.*")[0]
+        files = QFileDialog.getOpenFileNames(filter="UXD File (*.uxd);; RAW File (*.raw);; All *.*")[0]
         if len(files) == 0:
             return
 
         self.ui.lineEdit_input.setText(files[0])
         if self.ui.lineEdit_output.text() is "":
             self.ui.lineEdit_output.setText(files[0].replace('.UXD', '') + ".dat")
+            self.ui.lineEdit_output.setText(files[0].replace('.raw', '') + ".dat")
 
         if len(files) > 1:
             for f in files:
                 self.add_file(f)
-
 
     def select_file_output(self):
         self.ui.lineEdit_output.setText(QFileDialog.getOpenFileName()[0])
@@ -385,7 +381,8 @@ class Controller(object):
         context.xray_width = float(self.ui.lineEdit_beam_width.text().replace(',', '.'))
         context.qz_conversion = bool(self.ui.checkBox_convert_qz.isChecked())
 
-        range_1, range_2 = float(self.ui.lineEdit_qz_range_min.text().replace(',', '.')), float(self.ui.lineEdit_qz_range_max.text().replace(',', '.'))
+        range_1, range_2 = float(self.ui.lineEdit_qz_range_min.text().replace(',', '.')), float(
+            self.ui.lineEdit_qz_range_max.text().replace(',', '.'))
         context.qz_range = (min(range_1, range_2), max(range_1, range_2))
 
         if self.ui.radioButton_flank.isChecked():
@@ -416,6 +413,6 @@ class Controller(object):
         while len(file) < length:
             prev_file = file
             mod_path = os.path.dirname(mod_path)
-            file = path[+len(mod_path)-len(path):]
+            file = path[+len(mod_path) - len(path):]
 
         return "..." + prev_file

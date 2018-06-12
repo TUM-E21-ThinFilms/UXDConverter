@@ -65,7 +65,7 @@ class Comparator(object):
         data_region_1 = measurement_1.get_data_region_x()
         data_region_2 = measurement_2.get_data_region_x()
 
-        if data_region_1[0] <= data_region_2[0]:
+        if data_region_1[1] <= data_region_2[1]:
             return measurement_1, measurement_2
         else:
             return measurement_2, measurement_1

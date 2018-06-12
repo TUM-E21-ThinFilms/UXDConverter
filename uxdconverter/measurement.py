@@ -21,6 +21,9 @@ class Measurement(object):
     def get_data(self):
         return np.copy(self._data)
 
+    def scale_y(self, factor):
+        self._data = self._data * np.array([1, factor, factor])
+
     def get_headers(self):
         return self._headers
 
@@ -71,6 +74,6 @@ class Measurements(object):
     def get_background_measurements(self):
         return self._background_measurement
 
-
-    def merge(self, mss : 'Measurements') -> 'Measurements':
-        return Measurements(self._header, self.get_measurements() + mss.get_measurements(), self.get_background_measurements() + mss.get_background_measurements(), self._measurement_context)
+    def add(self, mss : 'Measurements'):
+        self._measurement = self._measurement + mss.get_measurements()
+        self._background_measurement = self._background_measurement + mss.get_background_measurements()

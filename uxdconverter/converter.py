@@ -38,6 +38,8 @@ class Converter(object):
         if len(mss) == 0:
             raise ValueError("Cannot convert if no measurement was given.")
 
+        mss = [self._error.manipulate(ms, context) for ms in mss]
+
         measurement = self._multi_merge.merge(mss)
 
         # If we have any background, subtract it from the measurement
