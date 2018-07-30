@@ -1,3 +1,6 @@
+
+import codecs
+
 from uxdconverter.raw.header.file import FileHeader
 from uxdconverter.raw.header.range import RangeHeader
 from uxdconverter.raw.header.supplementary import Supplementaries, SupplementaryHeader
@@ -10,9 +13,12 @@ class RawParser(object):
         pass
 
     def parse_from_file(self, file):
-        f = open(file, "rb")
+        try:
+            f = codecs.open(file, 'r', encoding='utf-8', errors='ignore')
 
-        return self.parse(f.read())
+            return self.parse(f.read())
+        except:
+            RuntimeError("Could not open file %s" % file)
 
     def parse(self, byte_stream):
         return self._parse_measurements(byte_stream)

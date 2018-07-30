@@ -194,7 +194,7 @@ class Controller(object):
         # context = self.create_context()
 
         item = QTreeWidgetItem(self.ui.measurements)
-        item.setFlags(item.flags() | Qt.ItemIsSelectable)
+        item.setFlags(item.flags() | Qt.ItemIsSelectable | Qt.ItemIsEditable)
         item.setText(0, name)
         item.setData(0, Qt.UserRole, id)
         item.setData(1, Qt.UserRole, is_background)

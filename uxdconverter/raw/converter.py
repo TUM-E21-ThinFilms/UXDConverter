@@ -15,9 +15,10 @@ class MeasurementConverter(object):
         # Convert to counts per second
         data_y = np.array(measurement.get_data().get_data_points()) / steptime
         data_x = np.array(range(0, measurement.get_header().get_number_of_data_records())) * stepsize + start
+        error_y = np.sqrt(data_y)
 
         # we do not care about headers at this point
-        return Measurement([], [list(a) for a in zip(data_x, data_y)])
+        return Measurement([], [list(a) for a in zip(data_x, data_y, error_y)])
 
 
 class MeasurementsConverter(object):
