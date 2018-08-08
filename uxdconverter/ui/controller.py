@@ -416,3 +416,4 @@ class Controller(object):
             file = path[+len(mod_path) - len(path):]
 
         return "..." + prev_file
+

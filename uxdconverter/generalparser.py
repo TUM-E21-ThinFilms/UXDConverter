@@ -1,6 +1,6 @@
 import os
 
-from uxdconverter.parser import MeasurementsParser
+from uxdconverter.parser import MeasurementsParser, SimpleMeasurementsParser
 from uxdconverter.raw.converter import RawMeasurementsParser
 
 
@@ -13,5 +13,7 @@ class FileParser(object):
 
         if ext.lower() == '.raw':
             return RawMeasurementsParser(file, logger).parse()
-        else:
+        elif ext.lower() == '.uxd':
             return MeasurementsParser(file, logger).parse()
+        else:
+            return SimpleMeasurementsParser(file, logger).parse()
