@@ -238,7 +238,7 @@ class Controller(object):
             msg.warning(None, "No output file", "No output file given")
             return
 
-        measurements = self.setup_measurement()
+
 
         output_path = os.path.dirname(os.path.realpath(output))
 
@@ -257,7 +257,7 @@ class Controller(object):
             pass
 
         try:
-
+            measurements = self.setup_measurement()
             ms = Converter(measurements).convert()
         except BaseException as e:
             self.logger.exception(e)
