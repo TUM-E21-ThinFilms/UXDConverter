@@ -15,8 +15,10 @@ class MeasurementConverter(object):
         # Convert to counts per second
         data_y = np.array(measurement.get_data().get_data_points()) / steptime
         # convert to theta, currently it is 2 theta
-        data_x = (np.array(range(0, measurement.get_header().get_number_of_data_records())) * stepsize + start)/2.0
-        error_y = np.sqrt(data_y)
+        # dont know why start doesnt need to be divided, but thats how it should be (comparing this with uxd files)
+        data_x = (np.array(range(0, measurement.get_header().get_number_of_data_records())) * stepsize)/2.0 + start
+        # do not calculate errors here, we're calculating them later on...
+        error_y = np.array(len(data_x) * [0])
 
         # we do not care about headers at this point
         return Measurement([], [list(a) for a in zip(data_x, data_y, error_y)])

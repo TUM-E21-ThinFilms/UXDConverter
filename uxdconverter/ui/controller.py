@@ -307,9 +307,8 @@ class Controller(object):
         self._plotting.plot(measurements + background, names_measurement + names_background)
 
     def plot_preview(self):
-        measurements = self.setup_measurement()
-
         try:
+            measurements = self.setup_measurement()
 
             ms = Converter(measurements).convert()
         except BaseException as e:
@@ -325,6 +324,10 @@ class Controller(object):
         # Find the appropriate measurements and background
         root = self.ui.measurements.invisibleRootItem()
         child_count = root.childCount()
+
+        if child_count == 0:
+            raise RuntimeError("No measurements available")
+
         for i in range(child_count):
             item = root.child(i)
 
@@ -352,6 +355,11 @@ class Controller(object):
     def plot_with_selection(self):
         context = self.create_context()
         context.normalization = 1.0
+
+        if self.measurements is None:
+            self.logger.warning("No plotting since no measurements are available")
+            return
+
 
         self.measurements.set_context(context)
         ms = Converter(self.measurements).convert()
