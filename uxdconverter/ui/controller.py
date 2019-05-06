@@ -174,7 +174,7 @@ class Controller(object):
             item.setData(0, Qt.UserRole, i)
 
     def select_file_input(self):
-        files = QFileDialog.getOpenFileNames(filter="UXD File (*.uxd);; RAW File (*.raw);; All *.*")[0]
+        files = QFileDialog.getOpenFileNames(filter="UXD/RAW (*.uxd, *.raw);; UXD (*uxd);; RAW (*.raw);; All *.*")[0]
         if len(files) == 0:
             return
 

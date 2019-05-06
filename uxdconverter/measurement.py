@@ -13,10 +13,30 @@ class MeasurementContext(object):
         self.qz_range = (0, 1)
         self.qz_conversion = True
 
+
 class Measurement(object):
     def __init__(self, headers, data):
         self._headers = headers
         self._data = np.array(data)
+        self._remove_strange_data_points()
+
+    def _remove_strange_data_points(self):
+        """
+        Removes "strange" data points, i.e. data points with counts less or equal to zero counts.
+
+        :return:
+        """
+        data = self._data.T
+        # Thats the counts.
+        ind = data[1] > 0
+
+        new_data = 3*[None]
+
+        new_data[0] = data[0][ind]
+        new_data[1] = data[1][ind]
+        new_data[2] = data[2][ind]
+
+        self._data = np.array(new_data).T
 
     def get_data(self):
         return np.copy(self._data)
@@ -74,6 +94,6 @@ class Measurements(object):
     def get_background_measurements(self):
         return self._background_measurement
 
-    def add(self, mss : 'Measurements'):
+    def add(self, mss: 'Measurements'):
         self._measurement = self._measurement + mss.get_measurements()
         self._background_measurement = self._background_measurement + mss.get_background_measurements()
