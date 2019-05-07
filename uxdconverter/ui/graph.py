@@ -1,15 +1,14 @@
 import matplotlib.pyplot as plt
 
 from typing import List
-from uxdconverter.measurement import Measurement
+from uxdconverter.measurement import Measurement, MeasurementContext
 
 class Plotting(object):
-    def plot(self, measurement: List[Measurement], names=None):
+    def plot(self, measurement: List[Measurement], context: MeasurementContext, names=None, cps=False):
         """
         Plots the measurement.
 
-        If measurement is of type list, earch measurement in the list is plotted in the same graph.
-
+        If measurement is of type list, each measurement in the list is plotted in the same graph.
 
         :param Measurement measurement: Single measurement or a list if measurements.
         :return: None
@@ -28,6 +27,16 @@ class Plotting(object):
 
         if not names is None:
             plt.legend(handles, names)
+
+        if context.qz_conversion:
+            plt.xlabel(r'$q_z$ $[A^{-1}]$')
+        else:
+            plt.xlabel(r'$\theta$ [deg]')
+
+        if not cps:
+            plt.ylabel(r'$log$ Reflectivity')
+        else:
+            plt.ylabel(r'$log$ CPS $[s^{-1}]$')
 
         plt.yscale('log')
         plt.show()

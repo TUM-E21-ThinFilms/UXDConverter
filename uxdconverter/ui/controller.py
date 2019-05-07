@@ -12,6 +12,7 @@ from PyQt5.QtCore import Qt, pyqtSignal, QObject
 
 from uxdconverter.generalparser import FileParser
 
+
 class SignalPropagator(QObject):
     sig = pyqtSignal(list)
 
@@ -238,8 +239,6 @@ class Controller(object):
             msg.warning(None, "No output file", "No output file given")
             return
 
-
-
         output_path = os.path.dirname(os.path.realpath(output))
 
         try:
@@ -304,7 +303,11 @@ class Controller(object):
         if len(measurements + background) == 0:
             return
 
-        self._plotting.plot(measurements + background, names_measurement + names_background)
+        ctx = self.create_context()
+        # Set it to false, to display theta values
+        ctx.qz_conversion = False
+
+        self._plotting.plot(measurements + background, ctx, names_measurement + names_background, True)
 
     def plot_preview(self):
         try:
@@ -315,7 +318,7 @@ class Controller(object):
             self.logger.exception(e)
             return
 
-        self._plotting.plot([ms])
+        self._plotting.plot([ms], self.create_context())
 
     def setup_measurement(self):
         measurements = []
@@ -360,7 +363,6 @@ class Controller(object):
             self.logger.warning("No plotting since no measurements are available")
             return
 
-
         self.measurements.set_context(context)
         ms = Converter(self.measurements).convert()
         # ms = convert_measurement(self.measurements)
@@ -381,6 +383,10 @@ class Controller(object):
             self.ui.label_cropping.setText("2 Theta range [deg]")
 
     def create_context(self):
+        """
+        Creates a measurement context using the user input from the 'Settings' tab
+        :return: MeasurementContext
+        """
         context = MeasurementContext()
         context.wavelength = float(self.ui.lineEdit_wavelength.text().replace(',', '.'))
         context.average_overlapping = bool(self.ui.checkbox_average.isChecked())
@@ -424,4 +430,3 @@ class Controller(object):
             file = path[+len(mod_path) - len(path):]
 
         return "..." + prev_file
-
