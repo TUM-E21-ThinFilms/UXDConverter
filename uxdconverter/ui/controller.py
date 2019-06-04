@@ -273,8 +273,10 @@ class Controller(object):
         exporter = FileExporter(output, ParrattExportAlgorithm())
         exporter.do_export(ms)
 
+        ctx = self.create_context()
+
         if self.ui.checkBox_view_plot.isChecked():
-            self._plotting.plot([ms])
+            self._plotting.plot([ms], ctx)
 
     def plot(self):
 
