@@ -24,7 +24,7 @@ class FileExporter(object):
 class ParrattExportAlgorithm(AbstractExportAlgorithm):
     def export(self, measurement: Measurement):
 
-        header = ["# q_z [A^-2]: wavevector transfer in z direction",
+        header = ["# q_z [A^-1]: wavevector transfer in z direction",
                   "# R: normalized reflectivity",
                   "# dR: error in reflectivity (absolut)",
                   "# q_z\tR\tdR",]
