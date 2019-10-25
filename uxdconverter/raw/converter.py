@@ -1,6 +1,8 @@
 from uxdconverter.measurement import Measurement, Measurements as UXDMeasurements, MeasurementContext
 from uxdconverter.raw.measurement import MeasurementRange, Measurements
 from uxdconverter.raw.parser import RawParser
+from uxdconverter.raw.header.range import RangeHeader
+
 import numpy as np
 
 class MeasurementConverter(object):
@@ -10,18 +12,30 @@ class MeasurementConverter(object):
     def convert(self, measurement: MeasurementRange):
         stepsize = measurement.get_header().get_step_size()
         steptime = measurement.get_header().get_step_time()
-        start = measurement.get_header().get_start_theta()
+
+        is_background = False
+        theta_data = (np.array(range(0, measurement.get_header().get_number_of_data_records())) * stepsize) / 2.0
+
+        # convert to theta, currently it is 2 theta
+        # 2Theta = 2 * Theta
+        if measurement.get_header().get_measurement_mode() == RangeHeader.MEASUREMENT_LOCKED_COUPLED:
+            offset = measurement.get_header().get_start_theta()
+
+        # 2Theta != 2 * Theta, i.e. usually used for a background scan and Theta has an offset (typ. 0.15deg)
+        elif measurement.get_header().get_measurement_mode() == RangeHeader.MEASUREMENT_UNLOCKED_COUPLED:
+            is_background = True
+            offset = measurement.get_header().get_start_two_theta() / 2
+
+        data_x = theta_data + offset
 
         # Convert to counts per second
         data_y = np.array(measurement.get_data().get_data_points()) / steptime
-        # convert to theta, currently it is 2 theta
-        # dont know why start doesnt need to be divided, but thats how it should be (comparing this with uxd files)
-        data_x = (np.array(range(0, measurement.get_header().get_number_of_data_records())) * stepsize)/2.0 + start
+
         # do not calculate errors here, we're calculating them later on...
         error_y = np.array(len(data_x) * [0])
 
         # we do not care about headers at this point
-        return Measurement([], [list(a) for a in zip(data_x, data_y, error_y)])
+        return Measurement([], [list(a) for a in zip(data_x, data_y, error_y)], is_background=is_background)
 
 
 class MeasurementsConverter(object):
@@ -37,7 +51,10 @@ class MeasurementsConverter(object):
         for ms in measurements.get_measurements():
             converted.append(self.converter.convert(ms))
 
-        return UXDMeasurements([], converted, [], MeasurementContext())
+        meas = [ms for ms in converted if not ms.is_background()]
+        back = [ms for ms in converted if ms.is_background()]
+
+        return UXDMeasurements([], meas, back, MeasurementContext())
 
 class RawMeasurementsParser(object):
     def __init__(self, file, logger):

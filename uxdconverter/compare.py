@@ -86,9 +86,10 @@ class Comparator(object):
         if overlapping_region is None:
             overlapping_region = self.overlap_limits(measurement_1, measurement_2)
 
-        overlap_data_1 = np.array(
-            [x for x in measurement_1.get_data() if (overlapping_region[0] >= x[0] >= overlapping_region[1])])
-        overlap_data_2 = np.array(
-            [x for x in measurement_2.get_data() if (overlapping_region[0] >= x[0] >= overlapping_region[1])])
+        overlap_data = []
 
-        return overlap_data_1, overlap_data_2
+        for ms in [measurement_1, measurement_2]:
+            data = [x for x in ms.get_data() if (overlapping_region[0] >= x[0] >= overlapping_region[1])]
+            overlap_data.append(np.array(data))
+
+        return overlap_data[0], overlap_data[1]

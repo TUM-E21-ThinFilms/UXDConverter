@@ -15,10 +15,17 @@ class MeasurementContext(object):
 
 
 class Measurement(object):
-    def __init__(self, headers, data):
+    def __init__(self, headers, data, is_background=False):
         self._headers = headers
         self._data = np.array(data)
         self._remove_strange_data_points()
+        self._is_background = bool(is_background)
+
+    def is_background(self):
+        return self._is_background
+
+    def set_background(self, bkgrd):
+        self._is_background = bool(bkgrd)
 
     def _remove_strange_data_points(self):
         """
