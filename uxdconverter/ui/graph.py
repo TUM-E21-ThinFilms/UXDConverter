@@ -34,7 +34,7 @@ class Plotting(object):
             plt.xlabel(r'$\theta$ [deg]')
 
         if not cps:
-            plt.ylabel(r'$log$ Reflectivity')
+            plt.ylabel(r'$log$ Reflectivity [1]')
         else:
             plt.ylabel(r'$log$ CPS $[s^{-1}]$')
 
