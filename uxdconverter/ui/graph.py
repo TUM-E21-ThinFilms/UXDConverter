@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from typing import List
 from uxdconverter.measurement import Measurement, MeasurementContext
 
+
 class Plotting(object):
     def plot(self, measurement: List[Measurement], context: MeasurementContext, names=None, cps=False):
         """
@@ -11,10 +12,14 @@ class Plotting(object):
         If measurement is of type list, each measurement in the list is plotted in the same graph.
 
         :param Measurement measurement: Single measurement or a list if measurements.
+        :param MeasurementContext context: Measurement context (conditions). required for plotting eg. the x-axis as
+                    q (wavevector transfer) or in Theta (incidence angle)
+        :param names: List of names (str) for the measurement
+        :param cps: Bool, plot the reflectivity in counts per second (not recommended)
         :return: None
         """
 
-        if not names is None and not len(names) == len(measurement):
+        if names is not None and not len(names) == len(measurement):
             raise ValueError("Given names must have the same length as measurements")
         handles = []
         for ms in measurement:
@@ -25,7 +30,7 @@ class Plotting(object):
 
             handles.append(plt.errorbar(x, y, yerr=y_err, markeredgewidth=1, capsize=2))
 
-        if not names is None:
+        if names is not None:
             plt.legend(handles, names)
 
         if context.qz_conversion:
@@ -40,7 +45,6 @@ class Plotting(object):
 
         plt.yscale('log')
         plt.show()
-
 
     def interactive_plot(self, measurement: Measurement, signal=None):
         data = measurement.get_data()
