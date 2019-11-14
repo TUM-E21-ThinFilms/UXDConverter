@@ -11,7 +11,8 @@ from PyQt5.QtWidgets import QFileDialog, QTreeWidgetItem, QHeaderView, QMessageB
 from PyQt5.QtCore import Qt, pyqtSignal, QObject
 
 from uxdconverter.generalparser import FileParser
-
+from uxdconverter.ui.controllers.xrd import XrdControllerTab
+from uxdconverter.ui.controllers.conversion import ConversionControllerTab
 
 class SignalPropagator(QObject):
     sig = pyqtSignal(list)
@@ -28,6 +29,8 @@ class Controller(object):
         self._plotting = Plotting()
         self.setup()
         self._parser = FileParser()
+
+        self._sub_controller = [XrdControllerTab(ui, app), ConversionControllerTab(ui, app)]
 
     def get_logger(self, name):
         """
@@ -65,7 +68,8 @@ class Controller(object):
             return
 
         norm = 1 / float(xy_data_point[1])
-        print("Normalization factor: %s" % str(norm))
+        self.logger.debug("Normalization factor: {}".format(norm))
+        #print("Normalization factor: %s" % str(norm))
         self.ui.lineEdit_normalization_factor.setText(str(norm))
 
     def check_file(self, file):

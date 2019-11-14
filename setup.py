@@ -19,7 +19,7 @@ from setuptools import setup, find_packages
 
 desc = ('UXDConverter')
 
-requires = ['numpy', 'matplotlib', 'PyQt5']
+requires = ['numpy', 'matplotlib', 'PyQt5', 'PyCifRW']
 
 setup(
     name='uxdconverter',
