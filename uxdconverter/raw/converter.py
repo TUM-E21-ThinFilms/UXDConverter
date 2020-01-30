@@ -25,7 +25,11 @@ class MeasurementConverter(object):
         elif measurement.get_header().get_measurement_mode() == RangeHeader.MEASUREMENT_UNLOCKED_COUPLED:
             is_background = True
             offset = measurement.get_header().get_start_two_theta() / 2
-
+        elif measurement.get_header().get_measurement_mode() == RangeHeader.MEASUREMENT_DETECTOR_SCAN:
+            offset = measurement.get_header().get_start_two_theta() / 2
+        else:
+            raise RuntimeError("Unknown measurement mode")
+        
         data_x = theta_data + offset
 
         # Convert to counts per second
@@ -34,8 +38,10 @@ class MeasurementConverter(object):
         # do not calculate errors here, we're calculating them later on...
         error_y = np.array(len(data_x) * [0])
 
+        error_x = np.array(len(data_x) * [0])
+
         # we do not care about headers at this point
-        return Measurement([], [list(a) for a in zip(data_x, data_y, error_y)], is_background=is_background)
+        return Measurement([], [list(a) for a in zip(data_x, error_x, data_y, error_y)], is_background=is_background)
 
 
 class MeasurementsConverter(object):

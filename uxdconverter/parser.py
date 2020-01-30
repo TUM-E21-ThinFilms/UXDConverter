@@ -127,7 +127,7 @@ class MeasurementParser(object):
                 ttheta, cps = line.replace(',', '.').split()
                 # add 2theta, cps, and delta_cps, where delta_cps is currently set to zero.
                 # divide 2theta by 2, so we just have theta :)
-                parsed_data.append([float(ttheta) / 2.0, float(cps), 0.0])
+                parsed_data.append([float(ttheta) / 2.0, 0.0, float(cps), 0.0])
             except:
                 self._logger.error("Could not parse data line '%s'")
 
@@ -162,7 +162,7 @@ class SimpleMeasurementsParser(object):
 
         for key, entry in enumerate(data):
             if len(entry) > 1:
-                parsed.append([float(entry[0]) / 2.0, float(entry[1]), 0.0])
+                parsed.append([float(entry[0]) / 2.0, 0.0, float(entry[1]), 0.0])
             else:
                 self._logger.error("Could not parse data line '%s'", key)
 

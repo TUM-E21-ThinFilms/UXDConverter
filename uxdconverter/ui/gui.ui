@@ -273,24 +273,13 @@
                 <layout class="QGridLayout" name="gridLayout_7">
                  <item row="0" column="0">
                   <layout class="QFormLayout" name="formLayout">
+                   <property name="fieldGrowthPolicy">
+                    <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+                   </property>
                    <item row="1" column="0">
                     <widget class="QLabel" name="label_4">
                      <property name="text">
                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;X-Ray wavelength [&amp;#8491;]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="0">
-                    <widget class="QLabel" name="label_5">
-                     <property name="text">
-                      <string>X-Ray beam width [mm]</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="4" column="0">
-                    <widget class="QLabel" name="label_6">
-                     <property name="text">
-                      <string>Knife Edge</string>
                      </property>
                     </widget>
                    </item>
@@ -301,23 +290,17 @@
                      </property>
                     </widget>
                    </item>
+                   <item row="2" column="0">
+                    <widget class="QLabel" name="label_5">
+                     <property name="text">
+                      <string>X-Ray beam width [mm]</string>
+                     </property>
+                    </widget>
+                   </item>
                    <item row="2" column="1">
                     <widget class="QLineEdit" name="lineEdit_beam_width">
                      <property name="text">
                       <string>0,1</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="4" column="1">
-                    <widget class="QCheckBox" name="checkBox_knifeedge">
-                     <property name="toolTip">
-                      <string>Was the measurement carried out with a knife edge?</string>
-                     </property>
-                     <property name="text">
-                      <string>Enabled</string>
-                     </property>
-                     <property name="checked">
-                      <bool>true</bool>
                      </property>
                     </widget>
                    </item>
@@ -335,6 +318,26 @@
                      </property>
                     </widget>
                    </item>
+                   <item row="4" column="0">
+                    <widget class="QLabel" name="label_6">
+                     <property name="text">
+                      <string>Knife Edge</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="4" column="1">
+                    <widget class="QCheckBox" name="checkBox_knifeedge">
+                     <property name="toolTip">
+                      <string>Was the measurement carried out with a knife edge?</string>
+                     </property>
+                     <property name="text">
+                      <string>Enabled</string>
+                     </property>
+                     <property name="checked">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
                    <item row="5" column="0">
                     <widget class="QLabel" name="label_7">
                      <property name="text">
@@ -349,6 +352,23 @@
                      </property>
                      <property name="text">
                       <string>Enabled</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="6" column="0">
+                    <widget class="QLabel" name="label_9">
+                     <property name="text">
+                      <string>Convert to Qz</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="6" column="1">
+                    <widget class="QCheckBox" name="checkBox_convert_qz">
+                     <property name="text">
+                      <string>Enabled</string>
+                     </property>
+                     <property name="checked">
+                      <bool>true</bool>
                      </property>
                     </widget>
                    </item>
@@ -377,24 +397,50 @@
                      </item>
                     </layout>
                    </item>
-                   <item row="6" column="0">
-                    <widget class="QLabel" name="label_9">
-                     <property name="text">
-                      <string>Convert to Qz</string>
+                   <item row="8" column="1">
+                    <spacer name="verticalSpacer_2">
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
                      </property>
-                    </widget>
-                   </item>
-                   <item row="6" column="1">
-                    <widget class="QCheckBox" name="checkBox_convert_qz">
-                     <property name="text">
-                      <string>Enabled</string>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>20</width>
+                       <height>40</height>
+                      </size>
                      </property>
-                     <property name="checked">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
+                    </spacer>
                    </item>
                   </layout>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QGroupBox" name="groupBox_7">
+                   <property name="title">
+                    <string>Plotting settings</string>
+                   </property>
+                   <layout class="QGridLayout" name="gridLayout_23">
+                    <item row="0" column="0">
+                     <layout class="QGridLayout" name="gridLayout_22">
+                      <item row="0" column="0">
+                       <widget class="QLabel" name="label_11">
+                        <property name="text">
+                         <string>log y - Axis</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="1">
+                       <widget class="QCheckBox" name="checkbox_plotLogScale">
+                        <property name="text">
+                         <string>Enabled</string>
+                        </property>
+                        <property name="checked">
+                         <bool>true</bool>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </item>
+                   </layout>
+                  </widget>
                  </item>
                 </layout>
                </widget>

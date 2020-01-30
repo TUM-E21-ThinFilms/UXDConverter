@@ -5,6 +5,10 @@ class MeasurementContext(object):
     def __init__(self):
         self.sample_length = 10  # unit: mm
         self.wavelength = 1.5418  # unit: Angstroem
+        # TODO: add wavelength error user input
+        self.wavelength_error = 1e-4  # unit: Angstroem
+        # TODO: add theta error user input
+        self.theta_error = 1e-5 # unit: deg
         self.xray_width = 0.1  # unit: mm
         self.saturation_threshold = 3.5e5  # unit: None
         self.knife_edge = False  # Whether or not the measurement was carried out with a knife edge.
@@ -12,6 +16,10 @@ class MeasurementContext(object):
         self.normalization = None  # Type of normalization method.
         self.qz_range = (0, 1)
         self.qz_conversion = True
+        self.y_log_scale = True
+
+    def get_wavelength(self):
+        return self.wavelength
 
 
 class Measurement(object):
@@ -34,14 +42,19 @@ class Measurement(object):
         :return:
         """
         data = self._data.T
-        # Thats the counts.
-        ind = data[1] > 0
 
-        new_data = 3*[None]
+        # Thats the counts.
+        ind = data[2] > 0
+
+        if any(ind) == False:
+            raise RuntimeError("Data contains no positive counts?")
+
+        new_data = 4 * [None]
 
         new_data[0] = data[0][ind]
         new_data[1] = data[1][ind]
         new_data[2] = data[2][ind]
+        new_data[3] = data[3][ind]
 
         self._data = np.array(new_data).T
 
@@ -49,7 +62,7 @@ class Measurement(object):
         return np.copy(self._data)
 
     def scale_y(self, factor):
-        self._data = self._data * np.array([1, factor, factor])
+        self._data = self._data * np.array([1, 1, factor, factor])
 
     def get_headers(self):
         return self._headers

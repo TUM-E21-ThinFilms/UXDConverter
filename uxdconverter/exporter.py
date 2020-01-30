@@ -3,8 +3,19 @@ from uxdconverter.measurement import Measurement
 
 
 class AbstractExportAlgorithm(object):
+    EXPORT_MODE_Q = 0
+    EXPORT_MODE_THETA = 1
+
+    EXPORT_MODES = [EXPORT_MODE_Q, EXPORT_MODE_THETA]
+
     def __init__(self):
-        pass
+        self._mode = self.EXPORT_MODE_Q
+
+    def export_mode(self, mode):
+        if not mode in self.EXPORT_MODES:
+            raise RuntimeError("Unknown export mode")
+
+        self._mode = mode
 
     def export(self, measurement: Measurement) -> str:
         raise NotImplementedError()
@@ -22,12 +33,22 @@ class FileExporter(object):
 
 
 class ParrattExportAlgorithm(AbstractExportAlgorithm):
+
     def export(self, measurement: Measurement):
 
-        header = ["# q_z [A^-1]: wavevector transfer in z direction",
-                  "# R: normalized reflectivity",
-                  "# dR: error in reflectivity (absolut)",
-                  "# q_z\tR\tdR",]
+        if self._mode is self.EXPORT_MODE_THETA:
+            header = ["# Theta [deg]: incident angle theta of x-rays",
+                      "# dTheta [deg]: error in theta (absolute)",
+                      "# R [1]: normalized reflectivity",
+                      "# dR [1]: error in reflectivity (absolute)",
+                      "# theta\tdTheta\tR\tdR",]
+
+        elif self._mode is self.EXPORT_MODE_Q:
+            header = ["# q_z [A^-1]: wavevector transfer in z direction",
+                      "# dq [A^-1]: error in q (absolute)",
+                      "# R [1]: normalized reflectivity",
+                      "# dR [1]: error in reflectivity (absolute)",
+                      "# q\tdq\tR\tdR", ]
 
         data_line = 999 * [""]
 
@@ -35,10 +56,11 @@ class ParrattExportAlgorithm(AbstractExportAlgorithm):
 
         # write out at most 1000 lines. Parratt cannot handle more than that...
         for idx in range(min(len(data), 999)):
-            x = "{:.3E}".format(data[idx][0])
-            y = "{:.3E}".format(data[idx][1])
-            err_y = "{:.3E}".format(data[idx][2])
+            x = "{:.4E}".format(data[idx][0])
+            err_x = "{:.4E}".format(data[idx][1])
+            y = "{:.4E}".format(data[idx][2])
+            err_y = "{:.4E}".format(data[idx][3])
 
-            data_line[idx] = "\t".join([x, y, err_y])
+            data_line[idx] = "\t".join([x, err_x, y, err_y])
 
         return "\n".join(header + data_line).strip()

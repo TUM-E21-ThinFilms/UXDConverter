@@ -25,10 +25,11 @@ class Plotting(object):
         for ms in measurement:
             data = ms.get_data()
             x = [x[0] for x in data]
-            y = [x[1] for x in data]
-            y_err = [x[2] for x in data]
+            x_err = [x[1] for x in data]
+            y = [x[2] for x in data]
+            y_err = [x[3] for x in data]
 
-            handles.append(plt.errorbar(x, y, yerr=y_err, markeredgewidth=1, capsize=2))
+            handles.append(plt.errorbar(x, y, xerr=x_err, yerr=y_err, markeredgewidth=1, capsize=2))
 
         if names is not None:
             plt.legend(handles, names)
@@ -38,19 +39,30 @@ class Plotting(object):
         else:
             plt.xlabel(r'$\theta$ [deg]')
 
-        if not cps:
-            plt.ylabel(r'$log$ Reflectivity [1]')
+        if context.y_log_scale:
+            prefix = '$log$'
         else:
-            plt.ylabel(r'$log$ CPS $[s^{-1}]$')
+            prefix = ''
 
-        plt.yscale('log')
+        if not cps:
+            suffix = "Reflectivity [1]"
+        else:
+            suffix = "CPS $[s^{-1}]$"
+
+        label = '{} {}'.format(prefix, suffix)
+
+        plt.ylabel(label)
+
+        if context.y_log_scale:
+            plt.yscale('log')
+
         plt.show()
 
     def interactive_plot(self, measurement: Measurement, signal=None):
         data = measurement.get_data()
 
         x = [x[0] for x in data]
-        y = [x[1] for x in data]
+        y = [x[2] for x in data]
         global picked, norm
         picked = []
         norm = None

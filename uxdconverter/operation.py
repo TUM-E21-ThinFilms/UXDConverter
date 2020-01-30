@@ -66,13 +66,13 @@ class MeasurementMerger(AbstractMeasurementMerger):
         # Compute the scaling factor if the user did not specify it.
         if scaling_factor is None:
             # scaling_factor = np.average([overlap_data_1[i][1] / overlap_data_2[i][1] for i in range(len(overlap_data_1))])
-            scaling_factor = sum([x[1] for x in overlap_data_1]) / sum([x[1] for x in overlap_data_2])
+            scaling_factor = sum([x[2] for x in overlap_data_1]) / sum([x[2] for x in overlap_data_2])
             if scaling_factor < 1:
                 scaling_factor = 1.0 / scaling_factor
 
         # figure out, which measurement has bigger values in the overlapping region
         # then we scale the other measurement.
-        diff = sum([overlap_data_1[i][1] - overlap_data_2[i][1] for i in range(len(overlap_data_1))])
+        diff = sum([overlap_data_1[i][2] - overlap_data_2[i][2] for i in range(len(overlap_data_1))])
 
         if diff >= 0:
             print("Scaling measurement 2 with %f by %f" % (scaling_factor, diff))
@@ -201,8 +201,8 @@ class MeasurementSubtraction(object):
             raise ValueError(
                 "Cannot subtract measurements, if the overlapping region does not contains the same amount of elements")
 
-        # little trick, the minuend is just [0, -cps, 0] ;)
-        data = overlap_data_1 - (overlap_data_2 * [0, 1, 0])
+        # little trick, the minuend is just [0, 0, -cps, 0] ;)
+        data = overlap_data_1 - (overlap_data_2 * [0, 0, 1, 0])
         return Measurement(measurement_1.get_headers(), data)
 
 
@@ -239,9 +239,9 @@ class DataNormalization(AbstractDataManipulation):
              applied to every point.
             """
             data = measurement.get_data()
-            max = np.amax([x[1] for x in data])
+            max = np.amax([x[2] for x in data])
             norm = 1.0 / max
-            return Measurement(measurement.get_headers(), data * np.array([1, norm, norm]))
+            return Measurement(measurement.get_headers(), data * np.array([1, 1, norm, norm]))
 
         if method == self.NORMALIZATION_METHOD_FLANK:
             """
@@ -252,7 +252,7 @@ class DataNormalization(AbstractDataManipulation):
 
             data = measurement.get_data()
             # Find the first flank via the gradient.
-            deriv = np.gradient([x[1] for x in data], [x[0] for x in data])
+            deriv = np.gradient([x[2] for x in data], [x[0] for x in data])
             first_flank = np.argmin(deriv)
 
             if first_flank == 0:
@@ -264,12 +264,12 @@ class DataNormalization(AbstractDataManipulation):
                 idx = np.argmin(left_deriv)
 
             # The scaling factor is then 1 / y_c, where y_c is the point with the lowest absolute slope
-            norm = 1.0 / data[idx][1]
-            return Measurement(measurement.get_headers(), data * np.array([1, norm, norm]))
+            norm = 1.0 / data[idx][2]
+            return Measurement(measurement.get_headers(), data * np.array([1, 1, norm, norm]))
 
         if isinstance(method, float):
             data = measurement.get_data()
-            return Measurement(measurement.get_headers(), data * np.array([1, method, method]))
+            return Measurement(measurement.get_headers(), data * np.array([1, 1, method, method]))
 
 
 class DataIlluminationCorrection(AbstractDataManipulation):
@@ -312,8 +312,10 @@ class DataIlluminationCorrection(AbstractDataManipulation):
             # So, scale the cps and the relative error
             if data[i][0] <= critical_angle:
                 correction = pre_scaling / np.sin(data[i][0] * np.pi / 180)
-                data[i][1] = data[i][1] * correction
+                # do nothing with the q-error
+                #data[i][1] = data[i][1]
                 data[i][2] = data[i][2] * correction
+                data[i][3] = data[i][3] * correction
 
         return Measurement(measurement.get_headers(), data)
 
@@ -329,8 +331,9 @@ class ErrorCalculation(AbstractDataManipulation):
         :param MeasurementContext context
         :return:
         """
-
-        data = [[x[0], x[1], 1 / np.sqrt(x[1])] for x in measurement.get_data()]
+        dT = context.theta_error
+        data = [[x[0], dT, x[2], np.sqrt(x[2])] for x in measurement.get_data()]
+        #data = [[x[0], dT, x[2], 1/np.sqrt(x[2])] for x in measurement.get_data()]
         return Measurement(measurement.get_headers(), data)
 
 
@@ -353,8 +356,13 @@ class QzCalculation(AbstractDataManipulation):
         # make a copy
         data = measurement.get_data()
 
+        dLoLsq = (context.wavelength_error / context.wavelength)**2
+        #dTsq = dT ** 2
+
         for i in range(len(data)):
             data[i][0] = pre_factor * np.sin(data[i][0] * np.pi / 180)
+            dTsq = data[i][1]**2
+            data[i][1] = pre_factor * np.sqrt(np.sin(data[i][0])**2 * dLoLsq + np.cos(data[i][0]) * dTsq)
 
         return Measurement(measurement.get_headers(), data)
 

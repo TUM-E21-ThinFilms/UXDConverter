@@ -138,7 +138,7 @@ class Controller(object):
         if file is None or not isinstance(file, str):
             file = self.ui.lineEdit_input.text()
 
-        if file is "":
+        if file == "":
             return
 
         # check for duplicate files
@@ -184,7 +184,7 @@ class Controller(object):
             return
 
         self.ui.lineEdit_input.setText(files[0])
-        if self.ui.lineEdit_output.text() is "":
+        if self.ui.lineEdit_output.text() == "":
             self.ui.lineEdit_output.setText(files[0].replace('.UXD', '') + ".dat")
             self.ui.lineEdit_output.setText(files[0].replace('.raw', '') + ".dat")
 
@@ -238,7 +238,7 @@ class Controller(object):
     def convert(self):
 
         output = self.ui.lineEdit_output.text()
-        if output is "":
+        if output == "":
             msg = QMessageBox()
             msg.warning(None, "No output file", "No output file given")
             return
@@ -274,7 +274,12 @@ class Controller(object):
             if ret == QMessageBox.Cancel:
                 return
 
-        exporter = FileExporter(output, ParrattExportAlgorithm())
+        export_algo = ParrattExportAlgorithm()
+        exporter = FileExporter(output, export_algo)
+
+        if self.create_context().qz_conversion is False:
+            export_algo.export_mode(ParrattExportAlgorithm.EXPORT_MODE_THETA)
+
         exporter.do_export(ms)
 
         ctx = self.create_context()
@@ -400,6 +405,7 @@ class Controller(object):
         context.sample_length = float(self.ui.lineEdit_sample_length.text().replace(',', '.'))
         context.xray_width = float(self.ui.lineEdit_beam_width.text().replace(',', '.'))
         context.qz_conversion = bool(self.ui.checkBox_convert_qz.isChecked())
+        context.y_log_scale = bool(self.ui.checkbox_plotLogScale.isChecked())
 
         range_1, range_2 = float(self.ui.lineEdit_qz_range_min.text().replace(',', '.')), float(
             self.ui.lineEdit_qz_range_max.text().replace(',', '.'))

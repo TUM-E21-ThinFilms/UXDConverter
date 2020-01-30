@@ -221,5 +221,3 @@ class BraggCondition(object):
         theta = asin(n * lamb / (2 * d))  # in rad
 
         return degrees(theta)
-
-    # def get_
