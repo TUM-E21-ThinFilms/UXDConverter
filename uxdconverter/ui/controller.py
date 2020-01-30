@@ -407,6 +407,9 @@ class Controller(object):
         context.qz_conversion = bool(self.ui.checkBox_convert_qz.isChecked())
         context.y_log_scale = bool(self.ui.checkbox_plotLogScale.isChecked())
 
+        context.wavelength_error = float(self.ui.input_wavelength_error.text().replace(',', '.'))
+        context.theta_error = float(self.ui.input_theta_error.text().replace(',', '.'))
+
         range_1, range_2 = float(self.ui.lineEdit_qz_range_min.text().replace(',', '.')), float(
             self.ui.lineEdit_qz_range_max.text().replace(',', '.'))
         context.qz_range = (min(range_1, range_2), max(range_1, range_2))
