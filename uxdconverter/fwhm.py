@@ -34,8 +34,8 @@ def fwhm2sigma(fwhm):
 
 def load_file(file):
     "/mnt/hektor/measure/Dünnschicht/01_X-ray_Messdaten/01_Alex/Detector_Scan_deltaTheta.raw"
-    from uxdconverter.generalparser import FileParser
-    measurements = FileParser().parse(file, None)
+    from uxdconverter.parser.general import GeneralParser
+    measurements = GeneralParser().parse(file, None)
     data = measurements.get_measurement(0).get_data()
     x, y = data.T[0], data.T[2]
     return x, y

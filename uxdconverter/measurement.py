@@ -25,6 +25,7 @@ class MeasurementContext(object):
 class Measurement(object):
     def __init__(self, headers, data, is_background=False):
         self._headers = headers
+        # data: [theta, dtheta, counts per second, dcps]
         self._data = np.array(data)
         self._remove_strange_data_points()
         self._is_background = bool(is_background)

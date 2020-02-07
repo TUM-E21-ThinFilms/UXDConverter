@@ -10,7 +10,7 @@ from uxdconverter.measurement import MeasurementContext, Measurements
 from PyQt5.QtWidgets import QFileDialog, QTreeWidgetItem, QHeaderView, QMessageBox
 from PyQt5.QtCore import Qt, pyqtSignal, QObject
 
-from uxdconverter.generalparser import FileParser
+from uxdconverter.parser.general import GeneralParser
 from uxdconverter.ui.controllers.xrd import XrdControllerTab
 from uxdconverter.ui.controllers.conversion import ConversionControllerTab
 
@@ -28,7 +28,7 @@ class Controller(object):
         self.files = []
         self._plotting = Plotting()
         self.setup()
-        self._parser = FileParser()
+        self._parser = GeneralParser()
 
         self._sub_controller = [XrdControllerTab(ui, app), ConversionControllerTab(ui, app)]
 
@@ -179,7 +179,7 @@ class Controller(object):
             item.setData(0, Qt.UserRole, i)
 
     def select_file_input(self):
-        files = QFileDialog.getOpenFileNames(filter="UXD/RAW (*.uxd, *.raw);; UXD (*uxd);; RAW (*.raw);; All *.*")[0]
+        files = QFileDialog.getOpenFileNames(filter="UXD/RAW/DAT (*.uxd, *.raw, *.dat);; UXD (*.uxd);; RAW (*.raw);; DAT (*.dat);;All *.*")[0]
         if len(files) == 0:
             return
 
