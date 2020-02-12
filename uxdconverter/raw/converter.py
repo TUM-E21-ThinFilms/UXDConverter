@@ -33,7 +33,8 @@ class MeasurementConverter(object):
         data_x = theta_data + offset
 
         # Convert to counts per second
-        data_y = np.array(measurement.get_data().get_data_points()) / steptime
+        # Naaaah, do not convert to counts per second
+        data_y = np.array(measurement.get_data().get_data_points())# / steptime
 
         # do not calculate errors here, we're calculating them later on...
         error_y = np.array(len(data_x) * [0])

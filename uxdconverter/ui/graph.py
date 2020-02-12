@@ -5,7 +5,7 @@ from uxdconverter.measurement import Measurement, MeasurementContext
 
 
 class Plotting(object):
-    def plot(self, measurement: List[Measurement], context: MeasurementContext, names=None, cps=False):
+    def plot(self, measurement: List[Measurement], context: MeasurementContext, names=None, counts=False):
         """
         Plots the measurement.
 
@@ -15,7 +15,7 @@ class Plotting(object):
         :param MeasurementContext context: Measurement context (conditions). required for plotting eg. the x-axis as
                     q (wavevector transfer) or in Theta (incidence angle)
         :param names: List of names (str) for the measurement
-        :param cps: Bool, plot the reflectivity in counts per second (not recommended)
+        :param counts: Bool, plot the reflectivity in counts (not recommended)
         :return: None
         """
 
@@ -44,10 +44,10 @@ class Plotting(object):
         else:
             prefix = ''
 
-        if not cps:
+        if not counts:
             suffix = "Reflectivity [1]"
         else:
-            suffix = "CPS $[s^{-1}]$"
+            suffix = "Counts $[1]$"
 
         label = '{} {}'.format(prefix, suffix)
 

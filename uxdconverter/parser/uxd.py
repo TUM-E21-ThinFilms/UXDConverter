@@ -121,16 +121,17 @@ class MeasurementParser(object):
 
         return parsed_headers
 
-    def _parse_data(self, raw):
+    def _parse_data(self, raw, steptime):
         parsed_data = []
 
         for line in raw:
             try:
+
                 # every data line contains the 2theta and counts_per_second information. Nothing more, nothing less.
                 ttheta, cps = line.replace(',', '.').split()
                 # add 2theta, cps, and delta_cps, where delta_cps is currently set to zero.
                 # divide 2theta by 2, so we just have theta :)
-                parsed_data.append([float(ttheta) / 2.0, 0.0, float(cps), 0.0])
+                parsed_data.append([float(ttheta) / 2.0, 0.0, float(cps) * steptime, 0.0])
             except:
                 self._logger.error("Could not parse data line '%s'")
 
@@ -138,5 +139,5 @@ class MeasurementParser(object):
 
     def parse(self, raw):
         raw_header, raw_data = self._split_measurement_from_header(raw)
-
-        return Measurement(self._parse_header(raw_header), self._parse_data(raw_data))
+        headers = self._parse_header(raw_header)
+        return Measurement(headers, self._parse_data(raw_data, headers['STEPTIME']))

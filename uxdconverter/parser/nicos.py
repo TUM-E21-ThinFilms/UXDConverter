@@ -22,5 +22,7 @@ class NicosParser(object):
 
         loader.read_out_data(0)
         rawdata = loader.datadict['rawdata']
-        data = [[d[0], 0.0, d[4] / d[3], 0.0] for d in rawdata]
+        # d[3] is steptime
+        # d[4] is counts
+        data = [[d[0], 0.0, d[4], 0.0] for d in rawdata]
         return Measurements([], [Measurement([], data)], [], MeasurementContext())
