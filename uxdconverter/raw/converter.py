@@ -22,8 +22,12 @@ class MeasurementConverter(object):
             offset = measurement.get_header().get_start_theta()
 
         # 2Theta != 2 * Theta, i.e. usually used for a background scan and Theta has an offset (typ. 0.15deg)
+        # or for stress measurements using larger offsets
         elif measurement.get_header().get_measurement_mode() == RangeHeader.MEASUREMENT_UNLOCKED_COUPLED:
             is_background = True
+            psi = measurement.get_header().get_start_theta() - measurement.get_header().get_start_two_theta() / 2.0
+            if abs(psi) > 0.5:
+                is_background = False
             offset = measurement.get_header().get_start_two_theta() / 2
         elif measurement.get_header().get_measurement_mode() == RangeHeader.MEASUREMENT_DETECTOR_SCAN:
             offset = measurement.get_header().get_start_two_theta() / 2

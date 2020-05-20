@@ -102,6 +102,9 @@ class Measurements(object):
     def get_count_measurements(self):
         return len(self._measurement)
 
+    def get_count_background_measurements(self):
+        return len(self._background_measurement)
+
     def get_measurement(self, index):
         return self._measurement[index]
 
