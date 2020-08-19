@@ -7,8 +7,9 @@ from PyQt5.QtWidgets import QFileDialog, QTableWidgetItem
 from PyQt5.QtCore import Qt
 
 from uxdconverter.ui.gui import Ui_UXDConverter
-from uxdconverter.diffraction.crystal import CubicSpacing, HexagonalSpacing, TriclinicSpacing, TetragonalSpacing, \
-    OrthorhombicSpacing, MonoclinicSpacing, RhombohedralSpacing, InterplanarSpacing, BraggCondition, DiffractionContext
+from uxdconverter.diffraction.crystal import CubicSpacing, HexagonalSpacing, TriclinicSpacing, \
+    TetragonalSpacing, OrthorhombicSpacing, MonoclinicSpacing, RhombohedralSpacing, InterplanarSpacing, \
+    BraggCondition, DiffractionContext
 
 
 class XrdControllerTab(object):
@@ -70,12 +71,10 @@ class XrdControllerTab(object):
         self.ui.bragg_table.itemChanged.connect(self.table_change)
         self.ui.bragg_table_2.itemChanged.connect(self.table_change)
 
-
         # The converter sometimes doesnt set this correctly :/
         # TODO: just a temporary fix
         self.ui.bragg_table.horizontalHeader().setVisible(True)
         self.ui.bragg_table_2.horizontalHeader().setVisible(True)
-
 
     def select_file_input(self):
         files = QFileDialog.getOpenFileName(filter="cif (*.cif);; All *.*")[0]
@@ -107,7 +106,6 @@ class XrdControllerTab(object):
                 crystal_index = index
 
         self.ui.combobox_crystalfamily.setCurrentIndex(crystal_index)
-
 
     def update_view(self):
         system = self.ui.combobox_crystalfamily.currentText()
@@ -211,7 +209,6 @@ class XrdControllerTab(object):
             bragg = BraggCondition(diffr_ctx, self.system)
             self.system.set_parameter(self.get_lattice_parameters())
 
-
             for row, hkl in enumerate(hkl_list):
                 try:
                     theta = round(bragg.get_theta(hkl[0], hkl[1], hkl[2]), 5)
@@ -226,7 +223,6 @@ class XrdControllerTab(object):
                 self.ui.bragg_table_2.rowCount()
 
                 rows.append((QTableWidgetItem(self._hkl_to_str(hkl)), thetaitem, tthetaitem))
-
 
             def append_to_table(table, rows):
                 for row in rows:

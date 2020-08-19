@@ -433,7 +433,7 @@
                    <item row="0" column="2">
                     <widget class="QLineEdit" name="input_wavelength_error">
                      <property name="text">
-                      <string>1,0e-4</string>
+                      <string>1,0e-2</string>
                      </property>
                     </widget>
                    </item>
@@ -447,7 +447,7 @@
                    <item row="1" column="2">
                     <widget class="QLineEdit" name="input_theta_error">
                      <property name="text">
-                      <string>1,0e-5</string>
+                      <string>9,585e-3</string>
                      </property>
                     </widget>
                    </item>

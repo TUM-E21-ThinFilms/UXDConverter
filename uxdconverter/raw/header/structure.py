@@ -9,7 +9,6 @@ class AbstractStructure(object):
     BYTEORDER = 'little'
 
     def __init__(self, raw):
-
         if not isinstance(raw, bytes):
             raise RuntimeError("Given data is not an instance of bytes")
 
@@ -40,7 +39,7 @@ class AbstractStructure(object):
         return self.get_float8(address)
 
     def get_float4(self, address):
-        return struct.unpack('<f', self.get_data(address, self.LENGTH_FLOAT))[0]
+        return struct.unpack('<f', self.get_data(address, 4))[0]
 
     def get_float8(self, address):
         return struct.unpack('<d', self.get_data(address, self.LENGTH_DOUBLE))[0]

@@ -94,7 +94,7 @@ class RangeHeader(AbstractStructure):
     def get_supplementaries(self):
         return self._supplementaries
 
-    def set_supplementaries(self, suppls : Supplementaries):
+    def set_supplementaries(self, suppls: Supplementaries):
         self._supplementaries = suppls
 
     def get_length(self):

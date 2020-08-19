@@ -19,11 +19,11 @@ from setuptools import setup, find_packages
 
 desc = ('UXDConverter')
 
-requires = ['numpy', 'matplotlib', 'PyQt5', 'PyCifRW']
+requires = ['numpy', 'matplotlib', 'PyQt5', 'PyCifRW', 'yaml']
 
 setup(
     name='uxdconverter',
-    version="1.0",
+    version=__import__('uxdconverter').__version__,
     author='Alexander Book',
     author_email='alexander.book@frm2.tum.de',
     license='GNU General Public License (GPL), Version 3',

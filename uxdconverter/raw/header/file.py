@@ -11,9 +11,7 @@ class FileHeader(AbstractStructure):
 
 
     def __init__(self, raw_data):
-
         super(FileHeader, self).__init__(raw_data)
-
         if not len(raw_data) == self.LENGTH:
             raise RuntimeError("Given input must be exactly 712 bytes long")
 

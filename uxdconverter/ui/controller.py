@@ -4,7 +4,7 @@ import logging
 from uxdconverter.ui.gui import Ui_UXDConverter
 from uxdconverter.ui.graph import Plotting
 from uxdconverter.converter import Converter
-from uxdconverter.exporter import FileExporter, ParrattExportAlgorithm
+from uxdconverter.exporter import FileExporter, ParrattExportAlgorithm, ORSOExportAlgorithm
 from uxdconverter.measurement import MeasurementContext, Measurements
 
 from PyQt5.QtWidgets import QFileDialog, QTreeWidgetItem, QHeaderView, QMessageBox
@@ -74,11 +74,10 @@ class Controller(object):
 
     def check_file(self, file):
         try:
-
             ms = self._parser.parse(file, self.logger)
 
             if ms is not None:
-                return ms.get_count_measurements()
+                return ms.get_count_measurements() + ms.get_count_background_measurements()
 
         except BaseException as e:
             self.logger.exception(e)
@@ -210,6 +209,9 @@ class Controller(object):
         # region.setText(1, "Qz [Ang]: %s ... %s" % (datapoint_to_qz(data_region[1], context), datapoint_to_qz(data_region[0], context)))
         region.setFlags(region.flags() ^ Qt.ItemIsSelectable)
 
+        if not measurement.get_psi() == 0:
+            region.setText(1, "Psi [deg]: {}".format(measurement.get_psi()))
+
         include = QTreeWidgetItem(item)
         include.setText(0, "Include")
         include.setText(1, "Background")
@@ -274,18 +276,14 @@ class Controller(object):
             if ret == QMessageBox.Cancel:
                 return
 
-        export_algo = ParrattExportAlgorithm()
+        export_algo = ORSOExportAlgorithm(ms, measurements.get_context())
+        #export_algo = ParrattExportAlgorithm(ms, measurements.get_context())
         exporter = FileExporter(output, export_algo)
 
-        if self.create_context().qz_conversion is False:
-            export_algo.export_mode(ParrattExportAlgorithm.EXPORT_MODE_THETA)
-
-        exporter.do_export(ms)
-
-        ctx = self.create_context()
+        exporter.do_export()
 
         if self.ui.checkBox_view_plot.isChecked():
-            self._plotting.plot([ms], ctx)
+            self._plotting.plot([ms], measurements.get_context())
 
     def plot(self):
 

@@ -14,11 +14,11 @@ class RawParser(object):
 
     def parse_from_file(self, file):
         try:
-            f = codecs.open(file, 'r', encoding='utf-8', errors='ignore')
+            f = open(file, 'rb')
 
             return self.parse(f.read())
         except:
-            RuntimeError("Could not open file %s" % file)
+            raise RuntimeError("Could not open file %s" % file)
 
     def parse(self, byte_stream):
         return self._parse_measurements(byte_stream)
@@ -67,5 +67,6 @@ class RawParser(object):
             ms = self._parse_measurement(raw)
             raw = raw[ms.get_length():]
             mss.append(ms)
+
 
         return Measurements(file, mss)

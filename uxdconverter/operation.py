@@ -360,9 +360,11 @@ class QzCalculation(AbstractDataManipulation):
         #dTsq = dT ** 2
 
         for i in range(len(data)):
-            data[i][0] = pre_factor * np.sin(data[i][0] * np.pi / 180)
-            dTsq = data[i][1]**2
-            data[i][1] = pre_factor * np.sqrt(np.sin(data[i][0])**2 * dLoLsq + np.cos(data[i][0]) * dTsq)
+            t_rad = np.deg2rad(data[i][0])
+            dTsq = np.deg2rad(data[i][1])**2
+
+            data[i][0] = pre_factor * np.sin(t_rad)
+            data[i][1] = pre_factor * np.sqrt(np.sin(t_rad)**2 * dLoLsq + np.cos(t_rad)**2 * dTsq)
 
         return Measurement(measurement.get_headers(), data)
 

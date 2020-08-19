@@ -2,6 +2,18 @@ import math
 
 from uxdconverter.ui.gui import Ui_UXDConverter
 
+import math
+
+CONST_H = 6.62607015e-34  # J s
+CONST_HBAR = CONST_H / (2 * math.pi)  # J s
+CONST_MASS_NEUTRON = 1.67492749804e-27  # kg
+CONST_MASS_PROTON = 1.67262192369e-27  # kg
+CONST_MASS_ELECTRON = 9.1093837015e-31  # kg
+CONST_ELEMENTARY_CHARGE = 1.602176634e-19  # C
+CONST_NUCLEAR_MAGNETON = CONST_ELEMENTARY_CHARGE * CONST_HBAR / 2 / CONST_MASS_PROTON  # J / T
+CONST_MU_NEUTRON = -1.91304272 * CONST_NUCLEAR_MAGNETON
+CONST_MU_BOHR = CONST_ELEMENTARY_CHARGE * CONST_HBAR / 2 / CONST_MASS_ELECTRON  # J / T
+
 
 class ConversionControllerTab(object):
 
@@ -51,3 +63,12 @@ class ConversionControllerTab(object):
 
         except BaseException as e:
             print(e)
+
+
+def mag_sld_to_mu_bohr(mag_sld):
+    # mag_sld is given in 1/AA**2, so convert this to 1/m**2
+    mag_sld = mag_sld * 1e20
+    B = mag_sld * 2 * math.pi * CONST_HBAR ** 2 / (CONST_MASS_NEUTRON * CONST_MU_NEUTRON)
+    return B
+    # SLD_m = N * p
+    # 2 pi hbar**2/ (m_n µ_n) * SLD_m = B

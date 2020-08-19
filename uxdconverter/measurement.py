@@ -8,7 +8,7 @@ class MeasurementContext(object):
         # TODO: add wavelength error user input
         self.wavelength_error = 1e-4  # unit: Angstroem
         # TODO: add theta error user input
-        self.theta_error = 1e-5 # unit: deg
+        self.theta_error = 0.009585 # unit: deg
         self.xray_width = 0.1  # unit: mm
         self.saturation_threshold = 3.5e5  # unit: None
         self.knife_edge = False  # Whether or not the measurement was carried out with a knife edge.
@@ -29,6 +29,7 @@ class Measurement(object):
         self._data = np.array(data)
         self._remove_strange_data_points()
         self._is_background = bool(is_background)
+        self._psi = 0
 
     def is_background(self):
         return self._is_background
@@ -78,6 +79,11 @@ class Measurement(object):
 
         return max, min
 
+    def set_psi(self, psi):
+        self._psi = psi
+
+    def get_psi(self) -> float:
+        return self._psi
 
 class Measurements(object):
     def __init__(self, header, measurements, backgrounds, measurement_context):

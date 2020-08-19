@@ -16,11 +16,12 @@ class MeasurementConverter(object):
         is_background = False
         theta_data = (np.array(range(0, measurement.get_header().get_number_of_data_records())) * stepsize) / 2.0
 
+        psi = 0
+
         # convert to theta, currently it is 2 theta
         # 2Theta = 2 * Theta
         if measurement.get_header().get_measurement_mode() == RangeHeader.MEASUREMENT_LOCKED_COUPLED:
             offset = measurement.get_header().get_start_theta()
-
         # 2Theta != 2 * Theta, i.e. usually used for a background scan and Theta has an offset (typ. 0.15deg)
         # or for stress measurements using larger offsets
         elif measurement.get_header().get_measurement_mode() == RangeHeader.MEASUREMENT_UNLOCKED_COUPLED:
@@ -46,7 +47,9 @@ class MeasurementConverter(object):
         error_x = np.array(len(data_x) * [0])
 
         # we do not care about headers at this point
-        return Measurement([], [list(a) for a in zip(data_x, error_x, data_y, error_y)], is_background=is_background)
+        ms = Measurement([], [list(a) for a in zip(data_x, error_x, data_y, error_y)], is_background=is_background)
+        ms.set_psi(psi)
+        return ms
 
 
 class MeasurementsConverter(object):
