@@ -356,6 +356,7 @@ class QzCalculation(AbstractDataManipulation):
         # make a copy
         data = measurement.get_data()
 
+        # delta Lambda / Lambda squared
         dLoLsq = (context.wavelength_error / context.wavelength)**2
         #dTsq = dT ** 2
 

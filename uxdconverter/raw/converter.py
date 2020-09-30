@@ -32,10 +32,15 @@ class MeasurementConverter(object):
             offset = measurement.get_header().get_start_two_theta() / 2
         elif measurement.get_header().get_measurement_mode() == RangeHeader.MEASUREMENT_DETECTOR_SCAN:
             offset = measurement.get_header().get_start_two_theta() / 2
+        elif measurement.get_header().get_measurement_mode() == RangeHeader.MEASUREMENT_ROCKING_CURVE:
+            offset = measurement.get_header().get_start_theta()
         else:
             raise RuntimeError("Unknown measurement mode")
-        
-        data_x = theta_data + offset
+
+        if measurement.get_header().get_measurement_mode() == RangeHeader.MEASUREMENT_ROCKING_CURVE:
+            data_x = 2 * theta_data + offset # we multiply by two since the division at the start was already wrong...
+        else:
+            data_x = theta_data + offset
 
         # Convert to counts per second
         # Naaaah, do not convert to counts per second
