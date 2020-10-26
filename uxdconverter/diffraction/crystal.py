@@ -1,6 +1,5 @@
 from math import sqrt, asin, degrees, sin, cos
 
-
 class InterplanarSpacing(object):
     PARAMETER_A = 'a'
     PARAMETER_B = 'b'

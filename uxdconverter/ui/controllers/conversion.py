@@ -41,7 +41,10 @@ class ConversionControllerTab(object):
         self.ui.conversion_input_theta.selectionChanged.connect(self.update_radio)
         self.ui.conversion_input_qz.selectionChanged.connect(self.update_radio)
 
+        self.ui.pushButton_toSettings.pressed.connect(self.update_wavelength_setting)
+
         self.ui.conversion_to_theta.setChecked(True)
+
 
         self._setup_wavelength()
         self._setup_transition_energies()
@@ -66,6 +69,9 @@ class ConversionControllerTab(object):
         self.ui.trans_energy_use_selected.clicked.connect(self.select_energy_transition)
         #self.ui.trans_energy_table.horizontalHeader().setSectionResizeMode(2)
         #self.ui.trans_energy_use_experimental.toggled.connect(self.update_transition_table)
+
+    def update_wavelength_setting(self):
+        self.ui.lineEdit_wavelength.setText(self.ui.conversion_input_wavelength.text())
 
     def update_radio(self):
         if self.ui.conversion_input_theta.hasFocus():

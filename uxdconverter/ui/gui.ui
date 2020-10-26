@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>672</width>
-    <height>503</height>
+    <width>661</width>
+    <height>620</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -286,7 +286,7 @@
                    <item row="1" column="1">
                     <widget class="QLineEdit" name="lineEdit_wavelength">
                      <property name="text">
-                      <string>1,5418</string>
+                      <string>1,5406</string>
                      </property>
                     </widget>
                    </item>
@@ -635,19 +635,6 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="0" column="3">
-                  <spacer name="horizontalSpacer_9">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
                  <item row="1" column="2">
                   <widget class="QLineEdit" name="conversion_input_energy">
                    <property name="maximumSize">
@@ -660,6 +647,26 @@
                     <number>10</number>
                    </property>
                   </widget>
+                 </item>
+                 <item row="0" column="4">
+                  <widget class="QPushButton" name="pushButton_toSettings">
+                   <property name="text">
+                    <string>to Settings</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="3">
+                  <spacer name="horizontalSpacer_13">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
                  </item>
                 </layout>
                </item>
@@ -1252,7 +1259,47 @@
                <string>Bragg Condition</string>
               </property>
               <layout class="QGridLayout" name="gridLayout_19">
-               <item row="1" column="0">
+               <item row="0" column="0">
+                <layout class="QHBoxLayout" name="horizontalLayout_9">
+                 <item>
+                  <widget class="QLabel" name="label_16">
+                   <property name="text">
+                    <string>Bragg order n</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="input_bragg_order">
+                   <property name="maximumSize">
+                    <size>
+                     <width>50</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>1</string>
+                   </property>
+                   <property name="maxLength">
+                    <number>5</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_12">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item row="3" column="0">
                 <widget class="QTableWidget" name="bragg_table">
                  <property name="cornerButtonEnabled">
                   <bool>true</bool>
@@ -1283,7 +1330,7 @@
                  </column>
                 </widget>
                </item>
-               <item row="1" column="1">
+               <item row="3" column="1">
                 <widget class="QTableWidget" name="bragg_table_2">
                  <property name="cornerButtonEnabled">
                   <bool>true</bool>

@@ -67,6 +67,8 @@ class XrdControllerTab(object):
         self.ui.lattice_alpha.textEdited.connect(self.calculate_bragg_peak)
         self.ui.lattice_beta.textEdited.connect(self.calculate_bragg_peak)
         self.ui.lattice_gamma.textEdited.connect(self.calculate_bragg_peak)
+        self.ui.input_bragg_order.textEdited.connect(self.calculate_bragg_peak)
+
 
         self.ui.bragg_table.itemChanged.connect(self.table_change)
         self.ui.bragg_table_2.itemChanged.connect(self.table_change)
@@ -201,7 +203,7 @@ class XrdControllerTab(object):
             self._updating_view = True
             diffr_ctx = DiffractionContext()
             diffr_ctx._wavelength = float(self.ui.lineEdit_wavelength.text().replace(',', '.'))
-            diffr_ctx._bragg_order = 1
+            diffr_ctx._bragg_order = int(self.ui.input_bragg_order.text())
 
             hkl_list = self._get_hkl_from_ui()
 

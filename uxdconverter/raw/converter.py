@@ -34,11 +34,17 @@ class MeasurementConverter(object):
             offset = measurement.get_header().get_start_two_theta() / 2
         elif measurement.get_header().get_measurement_mode() == RangeHeader.MEASUREMENT_ROCKING_CURVE:
             offset = measurement.get_header().get_start_theta()
+        elif measurement.get_header().get_measurement_mode() == RangeHeader.MEASUREMENT_PHI_SCAN:
+            offset = measurement.get_header().get_start_phi()
         else:
             raise RuntimeError("Unknown measurement mode")
 
+        print(measurement.get_header().get_start_chi())
+
         if measurement.get_header().get_measurement_mode() == RangeHeader.MEASUREMENT_ROCKING_CURVE:
             data_x = 2 * theta_data + offset # we multiply by two since the division at the start was already wrong...
+        elif measurement.get_header().get_measurement_mode() == RangeHeader.MEASUREMENT_PHI_SCAN:
+            data_x = 2*theta_data + offset
         else:
             data_x = theta_data + offset
 
