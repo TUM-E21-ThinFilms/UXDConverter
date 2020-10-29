@@ -17,9 +17,7 @@ import sys
 
 from setuptools import setup, find_packages
 
-desc = ('UXDConverter')
-
-requires = ['numpy', 'matplotlib', 'PyQt5', 'PyCifRW', 'yaml']
+requires = ['numpy', 'matplotlib', 'PyQt5', 'PyCifRW', 'pyyaml']
 
 setup(
     name='uxdconverter',
@@ -28,9 +26,10 @@ setup(
     author_email='alexander.book@frm2.tum.de',
     license='GNU General Public License (GPL), Version 3',
     url='https://github.com/TUM-E21-ThinFilms/UXDConverter',
-    description=desc,
+    description='UXDConverter',
     long_description=open('README.md').read(),
     packages=find_packages(),
+    package_data={'uxdconverter': ['transition_energy/*.dat']},
     include_package_data=True,
     install_requires=requires
 )
