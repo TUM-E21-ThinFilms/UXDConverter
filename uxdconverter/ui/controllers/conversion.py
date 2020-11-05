@@ -18,6 +18,15 @@ CONST_NUCLEAR_MAGNETON = CONST_ELEMENTARY_CHARGE * CONST_HBAR / 2 / CONST_MASS_P
 CONST_MU_NEUTRON = -1.91304272 * CONST_NUCLEAR_MAGNETON
 CONST_MU_BOHR = CONST_ELEMENTARY_CHARGE * CONST_HBAR / 2 / CONST_MASS_ELECTRON  # J / T
 
+UNIT_meV = 1
+UNIT_eV = 2
+UNIT_keV = 3
+UNIT_MeV = 4
+UNIT_MPS = 5
+UNIT_J = 6
+
+UNITS_NEUTRON_CONVERSION = [UNIT_eV, UNIT_meV, UNIT_keV, UNIT_MeV, UNIT_MPS, UNIT_J]
+
 
 class ConversionControllerTab(object):
 
@@ -48,6 +57,7 @@ class ConversionControllerTab(object):
 
         self._setup_wavelength()
         self._setup_transition_energies()
+        self._setup_wavelength_neutron()
 
     def _setup_wavelength(self):
         self.ui.conversion_energy.toggled.connect(self.update_wavelength_conversion)
@@ -61,6 +71,22 @@ class ConversionControllerTab(object):
         self.ui.conversion_input_energy.selectionChanged.connect(self.update_radio_wavelength)
 
         self.ui.conversion_energy.setChecked(True)
+
+    def _setup_wavelength_neutron(self):
+        self.ui.conversion_energy_neutron.toggled.connect(self.update_wavelength_neutron_conversion)
+        self.ui.conversion_wavelength_neutron.toggled.connect(self.update_wavelength_neutron_conversion)
+        self.ui.conversion_input_wavelength_neutron.textEdited.connect(self.update_wavelength_neutron_conversion)
+        self.ui.conversion_input_energy_neutron.textEdited.connect(self.update_wavelength_neutron_conversion)
+
+        self.ui.conversion_neutron_unit.currentIndexChanged.connect(self.update_wavelength_neutron_conversion)
+
+        self.ui.conversion_input_wavelength_neutron.editingFinished.connect(self.update_radio_wavelength_neutron)
+        self.ui.conversion_input_energy_neutron.editingFinished.connect(self.update_radio_wavelength_neutron)
+        self.ui.conversion_input_wavelength_neutron.selectionChanged.connect(self.update_radio_wavelength_neutron)
+        self.ui.conversion_input_energy_neutron.selectionChanged.connect(self.update_radio_wavelength_neutron)
+
+        self.ui.conversion_energy_neutron.setChecked(True)
+
 
     def _setup_transition_energies(self):
         self.ui.trans_energy_element.textEdited.connect(self.update_transition_table)
@@ -120,6 +146,69 @@ class ConversionControllerTab(object):
         except BaseException as e:
             print(e)
 
+    def _read_neutron_unit(self):
+        index = self.ui.conversion_neutron_unit.currentIndex()
+
+        mapping = {
+            0: UNIT_meV,
+            1: UNIT_eV,
+            2: UNIT_keV,
+            3: UNIT_MeV,
+            4: UNIT_MPS,
+            5: UNIT_J
+        }
+
+        if index in mapping:
+            return mapping[index]
+
+        return UNIT_meV
+
+    def update_wavelength_neutron_conversion(self):
+        try:
+            energy = float(self.ui.conversion_input_energy_neutron.text().replace(',', '.'))
+            wavelength = float(self.ui.conversion_input_wavelength_neutron.text().replace(',', '.'))
+
+            unit = self._read_neutron_unit()
+
+        except BaseException as e:
+            wavelength = 1
+            energy = 1
+            unit = UNIT_meV
+
+        try:
+            energy = self._unit_prefix(unit, from_energy=energy)
+        except BaseException as e:
+            energy = 1e3
+
+        try:
+            if self.ui.conversion_energy_neutron.isChecked():
+                energy = self._to_neutron_energy(wavelength)
+                energy = self._unit_prefix(unit, to_energy=energy)
+                self.ui.conversion_input_energy_neutron.setText("{:.5f}".format(energy))
+            else:
+                self.ui.conversion_input_wavelength_neutron.setText("{:.5f}".format(self._to_neutron_wavelength(energy)))
+        except BaseException as e:
+            print(e)
+
+        e_txt = 'Energy'
+        text_mapping = {
+            UNIT_meV: (e_txt, 'meV'),
+            UNIT_eV: (e_txt, 'eV'),
+            UNIT_keV: (e_txt, 'keV'),
+            UNIT_MeV: (e_txt, 'MeV'),
+            UNIT_MPS: ('Velocity', 'm/s'),
+            UNIT_J: (e_txt, 'J')
+        }
+
+        energy_txt, unit_txt = text_mapping[unit]
+        self.ui.conversion_energy_neutron.setText("{} [{}]".format(energy_txt, unit_txt))
+
+    def update_radio_wavelength_neutron(self):
+        if self.ui.conversion_input_energy_neutron.hasFocus():
+            self.ui.conversion_wavelength_neutron.setChecked(True)
+        elif self.ui.conversion_input_wavelength_neutron.hasFocus():
+            self.ui.conversion_energy_neutron.setChecked(True)
+
     def update_radio_wavelength(self):
         if self.ui.conversion_input_energy.hasFocus():
             self.ui.conversion_wavelength.setChecked(True)
@@ -142,6 +231,49 @@ class ConversionControllerTab(object):
         :return:
         """
         return CONST_H * CONST_SPEED_OF_LIGHT / (energy * CONST_ELEMENTARY_CHARGE) * 1e10
+
+    def _to_neutron_energy(self, wavelength):
+        """
+        wavelength in AA
+        energy in eV
+        :param wavelength:
+        :return:
+        """
+        return CONST_H**2 / (2 * wavelength**2 * 1e-20 * CONST_MASS_NEUTRON) / CONST_ELEMENTARY_CHARGE
+
+    def _to_neutron_wavelength(self, energy):
+        """
+        energy in eV
+        wavelength in AA
+        :param energy:
+        :return:
+        """
+        return CONST_H / math.sqrt(2 * energy * CONST_MASS_NEUTRON * CONST_ELEMENTARY_CHARGE) * 1e10
+
+    def _unit_prefix(self, unit, from_energy=None, to_energy=None):
+        if not unit in UNITS_NEUTRON_CONVERSION:
+            raise RuntimeError("unknown unit")
+
+        if unit == UNIT_MPS:
+            if from_energy:
+                return 0.5 * CONST_MASS_NEUTRON * from_energy**2 / CONST_ELEMENTARY_CHARGE
+            if to_energy:
+                return math.sqrt(2*to_energy/CONST_MASS_NEUTRON * CONST_ELEMENTARY_CHARGE)
+        # Conversion from eV to ...
+        prefix = {
+            UNIT_meV: 1e3,
+            UNIT_eV : 1e0,
+            UNIT_keV: 1e-3,
+            UNIT_MeV: 1e-6,
+            UNIT_J: CONST_ELEMENTARY_CHARGE
+        }
+
+        if from_energy is not None:
+            return from_energy / prefix[unit]
+
+        if to_energy is not None:
+            return to_energy * prefix[unit]
+
 
     def update_transition_table(self):
         element = self.ui.trans_energy_element.text()
