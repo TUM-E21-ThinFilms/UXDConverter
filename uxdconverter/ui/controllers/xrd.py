@@ -10,7 +10,7 @@ from uxdconverter.ui.gui import Ui_UXDConverter
 from uxdconverter.diffraction.crystal import CubicSpacing, HexagonalSpacing, TriclinicSpacing, \
     TetragonalSpacing, OrthorhombicSpacing, MonoclinicSpacing, RhombohedralSpacing, InterplanarSpacing, \
     BraggCondition, DiffractionContext
-
+from uxdconverter.util import get_logger
 
 class XrdControllerTab(object):
     SYSTEM_CUBIC = 'cubic'
@@ -45,6 +45,8 @@ class XrdControllerTab(object):
         self.ui = ui
         self.app = app
 
+        self.logger = get_logger(__name__)
+
         self.system = None
 
         self.default_hkl_list = [(1, 0, 0), (1, 1, 0), (1, 1, 1),
@@ -73,7 +75,7 @@ class XrdControllerTab(object):
         self.ui.bragg_table.itemChanged.connect(self.table_change)
         self.ui.bragg_table_2.itemChanged.connect(self.table_change)
 
-        # The converter sometimes doesnt set this correctly :/
+        # The converter sometimes doesn't set this correctly :/
         # TODO: just a temporary fix
         self.ui.bragg_table.horizontalHeader().setVisible(True)
         self.ui.bragg_table_2.horizontalHeader().setVisible(True)
@@ -194,6 +196,7 @@ class XrdControllerTab(object):
             try:
                 parameter[key] = float(parameter[key].text().replace(',', '.'))
             except:
+                self.logger.warning("Error fetching lattice parameter")
                 parameter[key] = 0.0
 
         return parameter
@@ -242,7 +245,7 @@ class XrdControllerTab(object):
                 append_to_table(table, rows)
 
         except BaseException as e:
-            print(e)
+            self.logger.exception(e)
         finally:
             self._updating_view = False
 

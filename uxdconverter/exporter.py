@@ -1,6 +1,7 @@
 import codecs
 import datetime
 import yaml
+import os
 
 from uxdconverter.measurement import Measurement
 from uxdconverter.measurement import MeasurementContext
@@ -75,19 +76,46 @@ class ORSOExportAlgorithm(AbstractExportAlgorithm):
         h = "# " + yaml.dump(header).replace('\n', '\n# ')
         return h + "\n" + data
 
+    def _file(self, file):
+        try:
+            created = datetime.datetime.fromtimestamp(os.path.getmtime(file)).strftime("%Y/%m/%d/%H:%M:%S")
+        except:
+            created = 'Unknown'
+
+        return {
+            'file': file,
+            'created': created
+        }
+
+
+    def set_used_data_files(self, files):
+        self._data_files = [
+            self._file(file) for file in files
+        ]
+
+    def set_used_background_files(self, files):
+        self._bkgrd_files = [
+            self._file(file) for file in files
+        ]
+
+    @classmethod
+    def as_list(cls, ls):
+        s = ", ".join(map(str, ls))
+        return "["+s+"]"
+
     def _create_headers(self):
 
         if not self._ctx.qz_conversion:
             data = {
-                'column 1': 'Theta / deg',
-                'column 2': 'sigma Theta / deg , standard deviation',
+                'column 1': 'Theta # deg',
+                'column 2': 'sigma Theta # deg , standard deviation',
                 'column 3': 'R(Theta)',
                 'column 4': 'sigma R(Theta), standard deviation'
             }
         else:
             data = {
-                'column 1': 'Qz / Aa^-1',
-                'column 2': 'sigma Qz / Aa^-1, standard deviation',
+                'column 1': 'Qz # Aa^-1',
+                'column 2': 'sigma Qz # Aa^-1, standard deviation',
                 'column 3': 'R(Qz)',
                 'column 4': 'sigma R(Theta), standard deviation'
 
@@ -95,6 +123,7 @@ class ORSOExportAlgorithm(AbstractExportAlgorithm):
         data['separator'] = "\t"
 
         headers = {
+            'reflectivity data file': 'orso file format 0.0',
             'creator': {
                 'creator': 'Alexander Book',
                 'affiliation': 'TUM',
@@ -107,11 +136,15 @@ class ORSOExportAlgorithm(AbstractExportAlgorithm):
                 },
                 'experiment': {
                     'instrument': 'X-Ray Reflectometer D5000',
-                    'probe': 'x-ray',
+                    'probe': 'x-rays',
                     'measurement': {
-                        'scheme': 'Theta-2Theta',
-                        'wavelength': str(self._ctx.get_wavelength()) + ' / Aa',
-                        'angular range': '',
+                        'angular range': self.as_list(self._ctx.qz_range) + " # deg" if self._ctx.qz_conversion is False else '',
+                        'scheme': 'angle-dispersive',
+                        'wavelength': self._ctx.get_wavelength(),
+                        'wavelength unit': 'Aa',
+                    },
+                    'sample': {
+                        'name': '', # TODO,
                     }
                 }
             },
@@ -119,21 +152,25 @@ class ORSOExportAlgorithm(AbstractExportAlgorithm):
                 'software': {
                     'programm': 'UXDConverter',
                     'version': __version__,
+                    'call': 'via gui',
                     'corrections': {
                         'footprint': not self._ctx.knife_edge,
                     }
                 },
                 'parameters': {
-                    'wavelength': str(self._ctx.get_wavelength()) + " / Aa",
-                    'error wavelength': str(self._ctx.wavelength_error) + ' / Aa, standard deviation',
-                    'error theta': str(self._ctx.theta_error) + ' / deg, standard deviation',
-                    'sample length': str(self._ctx.sample_length) + ' / mm',
-                    'beam width': str(self._ctx.xray_width) + ' / mm',
-                    'data range': list(self._ctx.qz_range)
+                    'wavelength': str(self._ctx.get_wavelength()) + " # Aa",
+                    'error wavelength': str(self._ctx.wavelength_error) + ' # Aa, standard deviation',
+                    'error theta': str(self._ctx.theta_error) + ' # deg, standard deviation',
+                    'sample length': str(self._ctx.sample_length) + ' # mm',
+                    'beam width': str(self._ctx.xray_width) + ' # mm',
+                    'data range': self.as_list(self._ctx.qz_range) + (" # Aa" if self._ctx.qz_conversion else " # deg")
+                },
+                'input files': {
+                    'background': self._bkgrd_files,
+                    'data': self._data_files,
                 }
             },
             'data': data
-
         }
 
         return headers

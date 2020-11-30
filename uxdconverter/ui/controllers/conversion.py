@@ -1,11 +1,10 @@
 import math
 
-from PyQt5.QtWidgets import QFileDialog, QTableWidgetItem
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QTableWidgetItem
 
 from uxdconverter.ui.gui import Ui_UXDConverter
 from uxdconverter.transition_energy.database import TransitionDatabase
-import math
+from uxdconverter.util import get_logger
 
 CONST_H = 6.62607015e-34  # J s
 CONST_SPEED_OF_LIGHT = 299792458  # m / s
@@ -33,6 +32,7 @@ class ConversionControllerTab(object):
     def __init__(self, ui: Ui_UXDConverter, app):
         self.ui = ui
         self.app = app
+        self.logger = get_logger(__name__)
 
         self._trans_db = TransitionDatabase()
 
@@ -54,7 +54,6 @@ class ConversionControllerTab(object):
 
         self.ui.conversion_to_theta.setChecked(True)
 
-
         self._setup_wavelength()
         self._setup_transition_energies()
         self._setup_wavelength_neutron()
@@ -75,26 +74,28 @@ class ConversionControllerTab(object):
     def _setup_wavelength_neutron(self):
         self.ui.conversion_energy_neutron.toggled.connect(self.update_wavelength_neutron_conversion)
         self.ui.conversion_wavelength_neutron.toggled.connect(self.update_wavelength_neutron_conversion)
-        self.ui.conversion_input_wavelength_neutron.textEdited.connect(self.update_wavelength_neutron_conversion)
+        self.ui.conversion_input_wavelength_neutron.textEdited.connect(
+            self.update_wavelength_neutron_conversion)
         self.ui.conversion_input_energy_neutron.textEdited.connect(self.update_wavelength_neutron_conversion)
 
         self.ui.conversion_neutron_unit.currentIndexChanged.connect(self.update_wavelength_neutron_conversion)
 
-        self.ui.conversion_input_wavelength_neutron.editingFinished.connect(self.update_radio_wavelength_neutron)
+        self.ui.conversion_input_wavelength_neutron.editingFinished.connect(
+            self.update_radio_wavelength_neutron)
         self.ui.conversion_input_energy_neutron.editingFinished.connect(self.update_radio_wavelength_neutron)
-        self.ui.conversion_input_wavelength_neutron.selectionChanged.connect(self.update_radio_wavelength_neutron)
+        self.ui.conversion_input_wavelength_neutron.selectionChanged.connect(
+            self.update_radio_wavelength_neutron)
         self.ui.conversion_input_energy_neutron.selectionChanged.connect(self.update_radio_wavelength_neutron)
 
         self.ui.conversion_energy_neutron.setChecked(True)
-
 
     def _setup_transition_energies(self):
         self.ui.trans_energy_element.textEdited.connect(self.update_transition_table)
         self.ui.trans_energy_transition.textEdited.connect(self.update_transition_table)
         self.ui.trans_energy_table.setColumnWidth(0, 80)
         self.ui.trans_energy_use_selected.clicked.connect(self.select_energy_transition)
-        #self.ui.trans_energy_table.horizontalHeader().setSectionResizeMode(2)
-        #self.ui.trans_energy_use_experimental.toggled.connect(self.update_transition_table)
+        # self.ui.trans_energy_table.horizontalHeader().setSectionResizeMode(2)
+        # self.ui.trans_energy_use_experimental.toggled.connect(self.update_transition_table)
 
     def update_wavelength_setting(self):
         self.ui.lineEdit_wavelength.setText(self.ui.conversion_input_wavelength.text())
@@ -112,8 +113,8 @@ class ConversionControllerTab(object):
 
             lamb = float(self.ui.lineEdit_wavelength.text().replace(',', '.'))
 
-        except BaseException as e:
-            print(e)
+        except BaseException:
+            self.logger.warning("Could get correct input for scattering wavevector conversion")
             theta = 0
             qz = 0
             lamb = 1.54
@@ -126,8 +127,8 @@ class ConversionControllerTab(object):
                 theta = math.degrees(math.asin(qz * lamb / (4 * math.pi))) % 360.0
                 self.ui.conversion_input_theta.setText("{:.8f}".format(theta))
 
-        except BaseException as e:
-            print(e)
+        except BaseException:
+            self.logger.warning("Could not calculate the scattering wavevector")
 
     def update_wavelength_conversion(self):
 
@@ -135,6 +136,7 @@ class ConversionControllerTab(object):
             energy = float(self.ui.conversion_input_energy.text().replace(',', '.'))
             wavelength = float(self.ui.conversion_input_wavelength.text().replace(',', '.'))
         except BaseException as e:
+            self.logger.warning("Could not get correct input for wavelength conversion")
             energy = 8046
             wavelength = 1.5418
 
@@ -144,7 +146,7 @@ class ConversionControllerTab(object):
             else:
                 self.ui.conversion_input_wavelength.setText("{:.8f}".format(self._to_wavelength(energy)))
         except BaseException as e:
-            print(e)
+            self.logger.warning("Could not calculate the wavelength")
 
     def _read_neutron_unit(self):
         index = self.ui.conversion_neutron_unit.currentIndex()
@@ -171,6 +173,7 @@ class ConversionControllerTab(object):
             unit = self._read_neutron_unit()
 
         except BaseException as e:
+            self.logger.warning("Could not get correct input for neutron wavelength conversion")
             wavelength = 1
             energy = 1
             unit = UNIT_meV
@@ -178,6 +181,7 @@ class ConversionControllerTab(object):
         try:
             energy = self._unit_prefix(unit, from_energy=energy)
         except BaseException as e:
+            self.logger.warning("Undefined unit prefix for neutron wavelength conversion")
             energy = 1e3
 
         try:
@@ -186,9 +190,10 @@ class ConversionControllerTab(object):
                 energy = self._unit_prefix(unit, to_energy=energy)
                 self.ui.conversion_input_energy_neutron.setText("{:.5f}".format(energy))
             else:
-                self.ui.conversion_input_wavelength_neutron.setText("{:.5f}".format(self._to_neutron_wavelength(energy)))
+                self.ui.conversion_input_wavelength_neutron.setText(
+                    "{:.5f}".format(self._to_neutron_wavelength(energy)))
         except BaseException as e:
-            print(e)
+            self.logger.warning("Exception while calculating neutron wavelength")
 
         e_txt = 'Energy'
         text_mapping = {
@@ -239,7 +244,7 @@ class ConversionControllerTab(object):
         :param wavelength:
         :return:
         """
-        return CONST_H**2 / (2 * wavelength**2 * 1e-20 * CONST_MASS_NEUTRON) / CONST_ELEMENTARY_CHARGE
+        return CONST_H ** 2 / (2 * wavelength ** 2 * 1e-20 * CONST_MASS_NEUTRON) / CONST_ELEMENTARY_CHARGE
 
     def _to_neutron_wavelength(self, energy):
         """
@@ -256,13 +261,13 @@ class ConversionControllerTab(object):
 
         if unit == UNIT_MPS:
             if from_energy:
-                return 0.5 * CONST_MASS_NEUTRON * from_energy**2 / CONST_ELEMENTARY_CHARGE
+                return 0.5 * CONST_MASS_NEUTRON * from_energy ** 2 / CONST_ELEMENTARY_CHARGE
             if to_energy:
-                return math.sqrt(2*to_energy/CONST_MASS_NEUTRON * CONST_ELEMENTARY_CHARGE)
+                return math.sqrt(2 * to_energy / CONST_MASS_NEUTRON * CONST_ELEMENTARY_CHARGE)
         # Conversion from eV to ...
         prefix = {
             UNIT_meV: 1e3,
-            UNIT_eV : 1e0,
+            UNIT_eV: 1e0,
             UNIT_keV: 1e-3,
             UNIT_MeV: 1e-6,
             UNIT_J: CONST_ELEMENTARY_CHARGE
@@ -274,7 +279,6 @@ class ConversionControllerTab(object):
         if to_energy is not None:
             return to_energy * prefix[unit]
 
-
     def update_transition_table(self):
         element = self.ui.trans_energy_element.text()
 
@@ -284,12 +288,14 @@ class ConversionControllerTab(object):
             self.ui.trans_energy_table.clearContents()
         elif len(found) == 1:
             self.ui.trans_energy_table.clearContents()
-            transitions = self._trans_db.get_all_transitions(found[0], filter=self.ui.trans_energy_transition.text())
+            transitions = self._trans_db.get_all_transitions(found[0],
+                                                             filter=self.ui.trans_energy_transition.text())
 
             self.ui.trans_energy_table.setRowCount(len(transitions))
             for idx, trans in enumerate(transitions):
                 e_theory = str(transitions[trans]['theory']) if transitions[trans]['theory'] > 0 else 'NA'
-                e_exp = str(transitions[trans]['experimental']) if transitions[trans]['experimental'] > 0 else 'NA'
+                e_exp = str(transitions[trans]['experimental']) if transitions[trans][
+                                                                       'experimental'] > 0 else 'NA'
                 self.ui.trans_energy_table.setItem(idx, 0, QTableWidgetItem(found[0]))
                 self.ui.trans_energy_table.setItem(idx, 1, QTableWidgetItem(trans))
                 self.ui.trans_energy_table.setItem(idx, 2, QTableWidgetItem(e_theory))
@@ -301,7 +307,6 @@ class ConversionControllerTab(object):
                 self.ui.trans_energy_table.setItem(idx, 0, QTableWidgetItem(el))
             self.ui.trans_energy_table.rowCount()
 
-
     def select_energy_transition(self):
         row = self.ui.trans_energy_table.currentRow()
         column = self.ui.trans_energy_table.currentColumn()
@@ -309,17 +314,20 @@ class ConversionControllerTab(object):
         energy = self.ui.trans_energy_table.item(row, column).text()
         try:
             energy = float(energy)
-        except:
+        except BaseException:
+            self.logger.warning("Error while fetching energy from table")
             return
 
         self.ui.conversion_input_energy.setText(str(energy))
         self.ui.conversion_wavelength.setChecked(True)
         self.update_wavelength_conversion()
 
+
 def mag_sld_to_mu_bohr(mag_sld):
     # mag_sld is given in 1/AA**2, so convert this to 1/m**2
     mag_sld = mag_sld * 1e20
     B = mag_sld * 2 * math.pi * CONST_HBAR ** 2 / (CONST_MASS_NEUTRON * CONST_MU_NEUTRON)
+
     return B
     # SLD_m = N * p
     # 2 pi hbar**2/ (m_n µ_n) * SLD_m = B

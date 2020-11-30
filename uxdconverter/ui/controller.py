@@ -1,5 +1,4 @@
 import os
-import logging
 
 from uxdconverter.ui.gui import Ui_UXDConverter
 from uxdconverter.ui.graph import Plotting
@@ -13,6 +12,7 @@ from PyQt5.QtCore import Qt, pyqtSignal, QObject
 from uxdconverter.parser.general import GeneralParser
 from uxdconverter.ui.controllers.xrd import XrdControllerTab
 from uxdconverter.ui.controllers.conversion import ConversionControllerTab
+from uxdconverter.util import get_logger
 
 class SignalPropagator(QObject):
     sig = pyqtSignal(list)
@@ -23,7 +23,7 @@ class Controller(object):
 
         self.app = app
         self.ui = ui
-        self.logger = self.get_logger(__name__)
+        self.logger = get_logger(__name__)
         self.measurements = None
         self.files = []
         self._plotting = Plotting()
@@ -31,20 +31,6 @@ class Controller(object):
         self._parser = GeneralParser()
 
         self._sub_controller = [XrdControllerTab(ui, app), ConversionControllerTab(ui, app)]
-
-    def get_logger(self, name):
-        """
-        Creates a logger with given name
-        :param str name:
-        :return: logging object
-        """
-        logger = logging.getLogger(name)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
-        ch.setFormatter(formatter)
-        logger.addHandler(ch)
-        return logger
 
     def run(self):
         pass
@@ -122,6 +108,9 @@ class Controller(object):
         for file in self.files:
             try:
                 ms = self._parser.parse(file, self.logger)
+
+                for measurement in ms.get_measurements():
+                    measurement.file_name = file
 
                 if self.measurements is None:
                     self.measurements = ms
@@ -202,12 +191,15 @@ class Controller(object):
         item.setText(0, name)
         item.setData(0, Qt.UserRole, id)
         item.setData(1, Qt.UserRole, is_background)
+        item.setData(2, Qt.UserRole, measurement.file_name)
 
         region = QTreeWidgetItem(item)
         data_region = measurement.get_data_region_x()
         region.setText(0, "Theta [deg]: %s ... %s" % (data_region[1], data_region[0]))
         # region.setText(1, "Qz [Ang]: %s ... %s" % (datapoint_to_qz(data_region[1], context), datapoint_to_qz(data_region[0], context)))
         region.setFlags(region.flags() ^ Qt.ItemIsSelectable)
+
+
 
         if not measurement.get_psi() == 0:
             region.setText(1, "Psi [deg]: {}".format(measurement.get_psi()))
@@ -222,6 +214,12 @@ class Controller(object):
             include.setCheckState(1, Qt.Checked)
         else:
             include.setCheckState(1, Qt.Unchecked)
+
+        if measurement.file_name is not None:
+            file = QTreeWidgetItem(item)
+            file.setText(0, "File: {}".format(self.shortify_path(measurement.file_name, 30)))
+            file.setFlags(region.flags() ^ Qt.ItemIsSelectable)
+            file.setToolTip(0, measurement.file_name)
 
     def update_measurement_view(self):
         self.ui.measurements.clear()
@@ -277,6 +275,8 @@ class Controller(object):
                 return
 
         export_algo = ORSOExportAlgorithm(ms, measurements.get_context())
+        export_algo.set_used_data_files([ms.file_name for ms in measurements.get_measurements()])
+        export_algo.set_used_background_files([ms.file_name for ms in measurements.get_background_measurements()])
         #export_algo = ParrattExportAlgorithm(ms, measurements.get_context())
         exporter = FileExporter(output, export_algo)
 
@@ -389,7 +389,7 @@ class Controller(object):
         if self.ui.checkBox_convert_qz.isChecked():
             self.ui.label_cropping.setText("Qz range [A^-1]")
         else:
-            self.ui.label_cropping.setText("2 Theta range [deg]")
+            self.ui.label_cropping.setText("Theta range [deg]")
 
     def create_context(self):
         """

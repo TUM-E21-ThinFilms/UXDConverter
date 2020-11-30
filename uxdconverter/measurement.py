@@ -5,9 +5,7 @@ class MeasurementContext(object):
     def __init__(self):
         self.sample_length = 10  # unit: mm
         self.wavelength = 1.5418  # unit: Angstroem
-        # TODO: add wavelength error user input
         self.wavelength_error = 1e-4  # unit: Angstroem
-        # TODO: add theta error user input
         self.theta_error = 0.009585 # unit: deg
         self.xray_width = 0.1  # unit: mm
         self.saturation_threshold = 3.5e5  # unit: None
@@ -30,6 +28,7 @@ class Measurement(object):
         self._remove_strange_data_points()
         self._is_background = bool(is_background)
         self._psi = 0
+        self.file_name = None
 
     def is_background(self):
         return self._is_background
@@ -91,6 +90,7 @@ class Measurements(object):
         self._measurement = measurements
         self._background_measurement = backgrounds
         self._measurement_context = measurement_context
+        self.file_name = None
 
     def get_headers(self):
         return self._header
