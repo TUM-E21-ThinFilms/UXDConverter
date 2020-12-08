@@ -1,6 +1,5 @@
 from uxdconverter.parser.ndatautils.parser import DataPath, ASCIILoader, InstrumentLoader
 from uxdconverter.measurement import Measurements, MeasurementContext, Measurement
-from os import path
 
 
 class XrayDataPath(DataPath):
