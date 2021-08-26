@@ -29,12 +29,12 @@ UNITS_NEUTRON_CONVERSION = [UNIT_eV, UNIT_meV, UNIT_keV, UNIT_MeV, UNIT_MPS, UNI
 
 class ConversionControllerTab(object):
 
-    def __init__(self, ui: Ui_UXDConverter, app):
+    def __init__(self, ui: Ui_UXDConverter, app, parent_controller, trans_db: TransitionDatabase):
         self.ui = ui
         self.app = app
         self.logger = get_logger(__name__)
-
-        self._trans_db = TransitionDatabase()
+        self._pcontroller = parent_controller
+        self._trans_db = trans_db
 
         self.setup()
 
@@ -98,7 +98,8 @@ class ConversionControllerTab(object):
         # self.ui.trans_energy_use_experimental.toggled.connect(self.update_transition_table)
 
     def update_wavelength_setting(self):
-        self.ui.lineEdit_wavelength.setText(self.ui.conversion_input_wavelength.text())
+        #self.ui.lineEdit_wavelength.setText(self.ui.conversion_input_wavelength.text())
+        self._pcontroller._settings_controller.set_wavelength(self.ui.conversion_input_wavelength.text())
 
     def update_radio(self):
         if self.ui.conversion_input_theta.hasFocus():
@@ -110,8 +111,8 @@ class ConversionControllerTab(object):
         try:
             theta = float(self.ui.conversion_input_theta.text().replace(',', '.'))
             qz = float(self.ui.conversion_input_qz.text().replace(',', '.'))
-
-            lamb = float(self.ui.lineEdit_wavelength.text().replace(',', '.'))
+            ctx = self._pcontroller._settings_controller.get_measurement_context()
+            lamb = ctx.wavelength
 
         except BaseException:
             self.logger.warning("Could get correct input for scattering wavevector conversion")

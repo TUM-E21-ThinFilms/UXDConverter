@@ -64,6 +64,10 @@ class TransitionDatabase(object):
             return self._db[element]
         else:
             res = {}
+
+            if not element in self._db.keys():
+                return []
+
             for transition in self._db[element].keys():
                 if transition.startswith(filter):
                     res[transition] = self._db[element][transition]

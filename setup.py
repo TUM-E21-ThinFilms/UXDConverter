@@ -17,7 +17,7 @@ import sys
 
 from setuptools import setup, find_packages
 
-requires = ['numpy', 'matplotlib', 'PyQt5', 'PyCifRW', 'pyyaml']
+requires = ['numpy', 'matplotlib', 'PyQt5', 'PyCifRW', 'pyyaml', 'periodictable']
 
 setup(
     name='uxdconverter',

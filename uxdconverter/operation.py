@@ -2,6 +2,7 @@ import numpy as np
 from typing import List
 from uxdconverter.measurement import Measurement, MeasurementContext
 from uxdconverter.compare import Comparator
+from uxdconverter.enums import DataNormalizationMethod
 
 from math import log
 
@@ -210,11 +211,7 @@ class AbstractDataManipulation(object):
     def manipulate(self, measurement: Measurement, context: MeasurementContext) -> Measurement:
         raise NotImplementedError()
 
-
 class DataNormalization(AbstractDataManipulation):
-    NORMALIZATION_METHOD_FLANK = 'flank'
-    NORMALIZATION_METHOD_MAX = 'max'
-    NORMALIZATION_METHOD_DEFAULT = NORMALIZATION_METHOD_FLANK
 
     def manipulate(self, measurement: Measurement, context: MeasurementContext) -> Measurement:
         """
@@ -230,10 +227,7 @@ class DataNormalization(AbstractDataManipulation):
 
         method = context.normalization
 
-        if method is None:
-            method = self.NORMALIZATION_METHOD_DEFAULT
-
-        if method == self.NORMALIZATION_METHOD_MAX:
+        if method == DataNormalizationMethod.MAX:
             """
              Just find the point with the most counts per second, and normalize this point to 1. The scaling factor is 
              applied to every point.
@@ -243,7 +237,7 @@ class DataNormalization(AbstractDataManipulation):
             norm = 1.0 / max
             return Measurement(measurement.get_headers(), data * np.array([1, 1, norm, norm]))
 
-        if method == self.NORMALIZATION_METHOD_FLANK:
+        if method == DataNormalizationMethod.FLANK:
             """
              First find the first flank (i.e. the point with the smallest derivative (the point where the graph's gradient 
              has the greatest descending. Then look for the points left to it (this should then be the region of total
@@ -267,9 +261,10 @@ class DataNormalization(AbstractDataManipulation):
             norm = 1.0 / data[idx][2]
             return Measurement(measurement.get_headers(), data * np.array([1, 1, norm, norm]))
 
-        if isinstance(method, float):
+        if method == DataNormalizationMethod.FACTOR:
+            factor = context.normalization_factor
             data = measurement.get_data()
-            return Measurement(measurement.get_headers(), data * np.array([1, 1, method, method]))
+            return Measurement(measurement.get_headers(), data * np.array([1, 1, factor, factor]))
 
 
 class DataIlluminationCorrection(AbstractDataManipulation):
@@ -381,15 +376,12 @@ class QzCropping(AbstractDataManipulation):
         :return:
         """
 
-        data = measurement.get_data()
-
-        new_data = []
-
         qz_min = context.qz_range[0]
         qz_max = context.qz_range[1]
 
-        for i in range(len(data)):
-            if qz_min <= data[i][0] <= qz_max:
-                new_data.append(data[i])
+        new_data = np.array([d for d in measurement.get_data() if qz_min <= d[0] <= qz_max])
+
+        if len(new_data) == 0:
+            raise RuntimeWarning("No data point in selected range. Check settings")
 
         return Measurement(measurement.get_headers(), np.array(new_data))

@@ -8,7 +8,7 @@ class SimpleMeasurementsParser(object):
         self._file = file_obj
         self._logger = logger
 
-    def parse(self, context=None):
+    def parse(self, context=None) -> Measurements:
 
         # use the default measurement context
         if context is None:

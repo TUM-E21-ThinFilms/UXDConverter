@@ -21,6 +21,7 @@ class Plotting(object):
 
         if names is not None and not len(names) == len(measurement):
             raise ValueError("Given names must have the same length as measurements")
+
         handles = []
         for ms in measurement:
             data = ms.get_data()

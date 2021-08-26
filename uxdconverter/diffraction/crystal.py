@@ -1,4 +1,4 @@
-from math import sqrt, asin, degrees, sin, cos
+from math import sqrt, asin, degrees, sin, cos, radians, ceil
 
 class InterplanarSpacing(object):
     PARAMETER_A = 'a'
@@ -17,8 +17,8 @@ class InterplanarSpacing(object):
         PARAMETER_GAMMA
     ]
 
-    def __init__(self):
-        self._params = {}
+    def __init__(self, params={}):
+        self._params = params
 
     def get_spacing(self, h, k, l):
         raise NotImplemented("Should be implemented in child classes")
@@ -76,6 +76,9 @@ class InterplanarSpacing(object):
         else:
             return TriclinicSpacing
 
+    def get_all_hkl(self, theta_max, bragg: 'BraggCondition'):
+        raise NotImplemented("Should be implemented in child classes")
+
 class CubicSpacing(InterplanarSpacing):
     def get_spacing(self, h, k, l):
         assert self._has_parameter()
@@ -87,6 +90,20 @@ class CubicSpacing(InterplanarSpacing):
     def get_required_parameters(self):
         return [self.PARAMETER_A]
 
+    def get_all_hkl(self, theta_max, bragg: 'BraggCondition'):
+        min_spacing = bragg.get_lattice_spacing(theta_max)
+        sigma = int((self._params[self.PARAMETER_A] / min_spacing)**2)
+        # inherent floor to the next integer
+        h_max = int(sqrt(sigma))
+        k_max = lambda h: int(sqrt(sigma-h**2)) if sigma-h**2 > 0 else 0
+        l_max = lambda h, k: int(sqrt(sigma-h**2-k**2)) if sigma - h**2 - k**2 > 0 else 0
+        hkl = []
+        for h in range(1, h_max + 1):
+            for k in range(k_max(h+1)):
+                for l in range(l_max(h, k)+1):
+                    hkl.append((h, k, l))
+
+        return hkl
 
 class TetragonalSpacing(InterplanarSpacing):
     def get_spacing(self, h, k, l):
@@ -220,3 +237,9 @@ class BraggCondition(object):
         theta = asin(n * lamb / (2 * d))  # in rad
 
         return degrees(theta)
+
+    def get_lattice_spacing(self, theta):
+        return self._ctx.get_bragg_order() * self._ctx.get_wavelength() / (2*sin(radians(theta)))
+
+    def get_all_hkl(self, theta_max):
+        return self._spacing.get_all_hkl(theta_max, self)

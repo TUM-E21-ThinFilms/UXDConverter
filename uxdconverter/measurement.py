@@ -1,3 +1,4 @@
+from enums import DataNormalizationMethod
 import numpy as np
 
 
@@ -11,7 +12,8 @@ class MeasurementContext(object):
         self.saturation_threshold = 3.5e5  # unit: None
         self.knife_edge = False  # Whether or not the measurement was carried out with a knife edge.
         self.average_overlapping = False  # If a knife edge was used, no illumination correction is done.
-        self.normalization = None  # Type of normalization method.
+        self.normalization = DataNormalizationMethod.FLANK  # Type of normalization method.
+        self.normalization_factor = 1
         self.qz_range = (0, 1)
         self.qz_conversion = True
         self.y_log_scale = True
@@ -29,6 +31,7 @@ class Measurement(object):
         self._is_background = bool(is_background)
         self._psi = 0
         self.file_name = None
+        self.name = ""
 
     def is_background(self):
         return self._is_background
@@ -36,12 +39,24 @@ class Measurement(object):
     def set_background(self, bkgrd):
         self._is_background = bool(bkgrd)
 
+    def set_headers(self, headers):
+        self._headers = headers
+
+    def set_display_name(self, name):
+        self.name = name
+
+    def get_display_name(self):
+        return self.name
+
     def _remove_strange_data_points(self):
         """
         Removes "strange" data points, i.e. data points with counts less or equal to zero counts.
 
         :return:
         """
+        if len(self._data ) == 0:
+            return
+
         data = self._data.T
 
         # Thats the counts.
@@ -123,6 +138,9 @@ class Measurements(object):
 
     def get_background_measurements(self):
         return self._background_measurement
+
+    def get_background_measurement(self, index):
+        return self._background_measurement[index]
 
     def add(self, mss: 'Measurements'):
         self._measurement = self._measurement + mss.get_measurements()

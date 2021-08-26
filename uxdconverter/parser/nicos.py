@@ -15,7 +15,7 @@ class NicosParser(object):
         self._file = file_obj
         self._logger = logger
 
-    def parse(self):
+    def parse(self) -> Measurements:
         datapath = XrayDataPath(self._file)
         loader = ASCIILoader(datapath, InstrumentLoader())
 

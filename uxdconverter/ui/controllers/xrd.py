@@ -41,17 +41,22 @@ class XrdControllerTab(object):
         SYSTEM_RHOMBOHEDRAL: RhombohedralSpacing,
     }
 
-    def __init__(self, ui: Ui_UXDConverter, app):
+    def __init__(self, ui: Ui_UXDConverter, app, parent_controller):
         self.ui = ui
         self.app = app
-
+        self._pcontroller = parent_controller
         self.logger = get_logger(__name__)
 
         self.system = None
 
         self.default_hkl_list = [(1, 0, 0), (1, 1, 0), (1, 1, 1),
-                                 (2, 0, 0), (2, 1, 0), (2, 1, 1), (2, 2, 1), (2, 2, 0), (2, 2, 2),
-                                 (4, 0, 0)]
+                                 (2, 0, 0), (2, 1, 0), (2, 1, 1),
+                                 (2, 2, 0), (3, 0, 0), (3, 1, 0),
+                                 (3, 1, 1), (2, 2, 2), (3, 2, 0),
+                                 (3, 2, 1), (4, 0, 0), (4, 1, 0),
+                                 (3, 3, 0), (3, 3, 1), (4, 2, 0),
+                                 (4, 2, 1), (3, 3, 2), (4, 2, 2),
+                                 (5, 0, 0), (5, 1, 0), (5, 1, 1)]
 
         self._updating_view = False
 
@@ -205,7 +210,7 @@ class XrdControllerTab(object):
         try:
             self._updating_view = True
             diffr_ctx = DiffractionContext()
-            diffr_ctx._wavelength = float(self.ui.lineEdit_wavelength.text().replace(',', '.'))
+            diffr_ctx._wavelength = self._pcontroller._settings_controller.get_measurement_context().wavelength
             diffr_ctx._bragg_order = int(self.ui.input_bragg_order.text())
 
             hkl_list = self._get_hkl_from_ui()

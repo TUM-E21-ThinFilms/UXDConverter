@@ -44,7 +44,7 @@ class MeasurementsParser(object):
 
         return measurements
 
-    def parse(self, context=None):
+    def parse(self, context=None) -> Measurements:
 
         # use the default measurement context
         if context is None:

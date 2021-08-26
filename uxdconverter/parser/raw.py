@@ -1,6 +1,6 @@
 from uxdconverter.raw.converter import MeasurementsConverter
 from uxdconverter.raw.parser import RawParser
-
+from uxdconverter.measurement import Measurements
 
 class RawMeasurementsParser(object):
     def __init__(self, file, logger):
@@ -8,7 +8,7 @@ class RawMeasurementsParser(object):
         self._logger = logger
         self._converter = MeasurementsConverter()
 
-    def parse(self):
+    def parse(self) -> Measurements:
         try:
             f = open(self._file, "rb")
         except:

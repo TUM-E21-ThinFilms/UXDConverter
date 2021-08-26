@@ -58,7 +58,6 @@ class Converter(object):
             measurement = self._qz_calc.manipulate(measurement, context)
 
         measurement = self._cropping.manipulate(measurement, context)
-
         measurement = self._normalization.manipulate(measurement, context)
 
         return measurement
