@@ -1,3 +1,4 @@
+import math
 import numpy as np
 
 from periodictable.xsf import xray_sld, xray_wavelength
@@ -41,7 +42,8 @@ class SldTabController(object):
 
         self.setup()
 
-    def _r(self, f):
+    @staticmethod
+    def _r(f):
         r = lambda x: round(x, 6)
         if isinstance(f, list) or isinstance(f, tuple):
             return [r(fs) for fs in f]
@@ -65,6 +67,7 @@ class SldTabController(object):
 
         self.calculate_penetration_depth(compound, wavelength_n, wavelength_x, thickness)
         self.calculate_sld(compound, wavelength_n, wavelength_x)
+        self.calculate_critical_reflection(wavelength_n, wavelength_x)
 
     def calculate_penetration_depth(self, compound, wavelength_n, wavelength_x, thickness):
         sld, xs, pendepth = neutron_scattering(compound, density=compound.density, wavelength=wavelength_n)
@@ -108,6 +111,22 @@ class SldTabController(object):
         self.ui.lE_SLD_xray_real.setText(f"{x_real}")
         self.ui.lE_SLD_xray_imag.setText(f"{x_imag}")
 
+    def calculate_critical_reflection(self, neutron_wavelength, xray_wavelength):
+        qc = lambda wavelength, sld: self._r(math.sqrt(16*math.pi*sld))
+        thetac = lambda wavelength, sld: self._r(math.degrees(math.asin(math.sqrt(sld/math.pi) * wavelength)))
+
+        try:
+            # Units are 10^-6 [AA^-2]
+            sld_xray = float(self.ui.lE_SLD_xray_real.text()) * 1e-6
+            sld_neutron = float(self.ui.lE_SLD_neutron_real.text()) * 1e-6
+        except:
+            return
+
+        self.ui.lE_critical_angle_xray.setText(f"{thetac(xray_wavelength, sld_xray)}")
+        self.ui.lE_critical_wavevector_xray.setText(f"{qc(xray_wavelength, sld_xray)}")
+        self.ui.lE_critical_angle_neutron.setText(f"{thetac(neutron_wavelength, sld_neutron)}")
+        self.ui.lE_critical_wavevector_neutron.setText(f"{qc(neutron_wavelength, sld_neutron)}")
+
     def get_neutron_wavelength(self):
         """
         Returns the neutron wavelength in [AA]
@@ -129,9 +148,6 @@ class SldTabController(object):
         Returns the xray wavelength in [AA]
         :return:
         """
-
-
-
         wavelength_str = self.ui.lE_source_xray.text()
         try:
             return Wavelength.from_string(wavelength_str, self._trans_db)
@@ -139,36 +155,6 @@ class SldTabController(object):
             self._log_ex(e)
             hightlight(self.ui.lE_source_xray)
             return None
-
-        # TODO: use wavelength class
-        try:
-            if np.any([emisson_line in wavelength_str for emisson_line in EMISSON_LINES.keys()]):
-                for emisson_line in EMISSON_LINES.keys():
-                    if not emisson_line in wavelength_str:
-                        continue
-
-                    element = wavelength_str.replace(emisson_line, '').strip()
-                    transitions = self._trans_db.get_all_transitions(element, EMISSON_LINES[emisson_line])
-                    if len(transitions) != 1:
-                        hightlight(self.ui.lE_source_xray)
-                        return None
-                    # transition db returns in eV, xray-wavelength expects keV
-                    return xray_wavelength(transitions[EMISSON_LINES[emisson_line]]['experimental'] * 1e-3)
-        except BaseException as e:
-            self._log_ex(e)
-            hightlight(self.ui.lE_source_xray)
-            return None
-
-        try:
-            wavelength = float(wavelength_str.replace('AA', '').replace('Ang', ''))
-            if wavelength > 0:
-                return wavelength
-        except BaseException as e:
-            hightlight(self.ui.lE_source_xray)
-            self._log_ex(e)
-
-        # Cu Ka wavelength
-        return None
 
     def get_compound(self):
         compound_str = self.ui.lE_SLD_sample_material.text()

@@ -842,26 +842,49 @@
                   <string>Scattering length density</string>
                  </attribute>
                  <layout class="QGridLayout" name="gridLayout_31">
-                  <item row="0" column="0">
+                  <item row="3" column="0">
+                   <layout class="QGridLayout" name="gridLayout_5">
+                    <item row="0" column="0">
+                     <widget class="QLabel" name="label_critical_angle">
+                      <property name="text">
+                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;critical angle &lt;span&gt;θ&lt;/span&gt;&lt;span style=&quot;vertical-align:sub;&quot;&gt;c &lt;/span&gt;[deg]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="1">
+                     <widget class="QLineEdit" name="lE_critical_angle_xray"/>
+                    </item>
+                    <item row="1" column="0">
+                     <widget class="QLabel" name="label_critical_wavevector">
+                      <property name="text">
+                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;critical wavevector q&lt;span style=&quot; vertical-align:sub;&quot;&gt;c &lt;/span&gt;[Å&lt;span style=&quot; vertical-align:super;&quot;&gt;-1&lt;/span&gt;]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="2">
+                     <widget class="QLineEdit" name="lE_critical_angle_neutron"/>
+                    </item>
+                    <item row="1" column="1">
+                     <widget class="QLineEdit" name="lE_critical_wavevector_xray"/>
+                    </item>
+                    <item row="1" column="2">
+                     <widget class="QLineEdit" name="lE_critical_wavevector_neutron"/>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="1" column="0">
                    <layout class="QGridLayout" name="gridLayout_36">
+                    <item row="1" column="0">
+                     <widget class="QLabel" name="label_SLD_pendepth_abs_2">
+                      <property name="text">
+                       <string>real</string>
+                      </property>
+                     </widget>
+                    </item>
                     <item row="0" column="2" alignment="Qt::AlignHCenter">
                      <widget class="QLabel" name="label_SLD_pendepth_neutrons_2">
                       <property name="text">
                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Neutrons [10&lt;span style=&quot; vertical-align:super;&quot;&gt;-6&lt;/span&gt; Å&lt;span style=&quot; vertical-align:super;&quot;&gt;-2&lt;/span&gt;]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="2" column="0">
-                     <widget class="QLabel" name="label_SLD_pendepth_abs_incoh_2">
-                      <property name="text">
-                       <string>imag</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="2" column="1">
-                     <widget class="QLineEdit" name="lE_SLD_xray_imag">
-                      <property name="readOnly">
-                       <bool>true</bool>
                       </property>
                      </widget>
                     </item>
@@ -879,31 +902,17 @@
                       </property>
                      </widget>
                     </item>
-                    <item row="3" column="0">
-                     <widget class="QLabel" name="label_SLD_pendepth_abs_incoh_coh_2">
-                      <property name="text">
-                       <string>incoh</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="1" column="0">
-                     <widget class="QLabel" name="label_SLD_pendepth_abs_2">
-                      <property name="text">
-                       <string>real</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="2" column="2">
-                     <widget class="QLineEdit" name="lE_SLD_neutron_imag">
-                      <property name="readOnly">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
                     <item row="1" column="1">
                      <widget class="QLineEdit" name="lE_SLD_xray_real">
                       <property name="readOnly">
                        <bool>true</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="2" column="0">
+                     <widget class="QLabel" name="label_SLD_pendepth_abs_incoh_2">
+                      <property name="text">
+                       <string>imag</string>
                       </property>
                      </widget>
                     </item>
@@ -914,7 +923,35 @@
                       </property>
                      </widget>
                     </item>
+                    <item row="3" column="0">
+                     <widget class="QLabel" name="label_SLD_pendepth_abs_incoh_coh_2">
+                      <property name="text">
+                       <string>incoh</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="2" column="1">
+                     <widget class="QLineEdit" name="lE_SLD_xray_imag">
+                      <property name="readOnly">
+                       <bool>true</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="2" column="2">
+                     <widget class="QLineEdit" name="lE_SLD_neutron_imag">
+                      <property name="readOnly">
+                       <bool>true</bool>
+                      </property>
+                     </widget>
+                    </item>
                    </layout>
+                  </item>
+                  <item row="2" column="0">
+                   <widget class="Line" name="line_2">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </widget>
@@ -1702,6 +1739,75 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>lineEdit_output</tabstop>
+  <tabstop>pushButton_output</tabstop>
+  <tabstop>lineEdit_input</tabstop>
+  <tabstop>pushButton_input</tabstop>
+  <tabstop>pushButton_addfile</tabstop>
+  <tabstop>treeWidget_file</tabstop>
+  <tabstop>pushButton_deletefile</tabstop>
+  <tabstop>pushButton_resetfile</tabstop>
+  <tabstop>measurements</tabstop>
+  <tabstop>pushButton_plot</tabstop>
+  <tabstop>conversion_to_qz</tabstop>
+  <tabstop>conversion_input_qz</tabstop>
+  <tabstop>conversion_to_theta</tabstop>
+  <tabstop>conversion_input_theta</tabstop>
+  <tabstop>tabWidget_2</tabstop>
+  <tabstop>conversion_wavelength</tabstop>
+  <tabstop>conversion_input_wavelength</tabstop>
+  <tabstop>conversion_energy</tabstop>
+  <tabstop>pushButton_toSettings</tabstop>
+  <tabstop>conversion_input_energy</tabstop>
+  <tabstop>conversion_input_wavelength_neutron</tabstop>
+  <tabstop>conversion_neutron_unit</tabstop>
+  <tabstop>conversion_wavelength_neutron</tabstop>
+  <tabstop>conversion_input_energy_neutron</tabstop>
+  <tabstop>conversion_energy_neutron</tabstop>
+  <tabstop>trans_energy_element</tabstop>
+  <tabstop>trans_energy_transition</tabstop>
+  <tabstop>trans_energy_use_selected</tabstop>
+  <tabstop>trans_energy_table</tabstop>
+  <tabstop>lE_SLD_sample_material</tabstop>
+  <tabstop>lE_SLD_sample_density</tabstop>
+  <tabstop>lE_SLD_sample_thickness</tabstop>
+  <tabstop>tabWidget_3</tabstop>
+  <tabstop>lE_SLD_xray_imag</tabstop>
+  <tabstop>lE_SLD_neutron_incoh</tabstop>
+  <tabstop>lE_SLD_neutron_real</tabstop>
+  <tabstop>lE_SLD_neutron_imag</tabstop>
+  <tabstop>lE_SLD_xray_real</tabstop>
+  <tabstop>lE_SLD_pendepth_xray_abs</tabstop>
+  <tabstop>lE_SLD_pendepth_neutron_abs_incoh_coh</tabstop>
+  <tabstop>lE_SLD_pendepth_xray_transmission</tabstop>
+  <tabstop>lE_SLD_pendepth_neutron_transmission</tabstop>
+  <tabstop>lE_SLD_pendepth_neutron_abs_incoh</tabstop>
+  <tabstop>lE_SLD_pendepth_neutron_abs</tabstop>
+  <tabstop>lE_SLD_pendepth_xray_attenuation</tabstop>
+  <tabstop>lE_SLD_pendepth_neutron_attenuation</tabstop>
+  <tabstop>lE_source_neutron</tabstop>
+  <tabstop>lE_source_xray</tabstop>
+  <tabstop>btn_SLD_calculate</tabstop>
+  <tabstop>cif_file</tabstop>
+  <tabstop>cif_browse</tabstop>
+  <tabstop>cif_import</tabstop>
+  <tabstop>combobox_crystalfamily</tabstop>
+  <tabstop>button_calculate_bragg</tabstop>
+  <tabstop>lattice_b</tabstop>
+  <tabstop>lattice_c</tabstop>
+  <tabstop>lattice_a</tabstop>
+  <tabstop>lattice_alpha</tabstop>
+  <tabstop>lattice_beta</tabstop>
+  <tabstop>lattice_gamma</tabstop>
+  <tabstop>input_bragg_order</tabstop>
+  <tabstop>bragg_table</tabstop>
+  <tabstop>bragg_table_2</tabstop>
+  <tabstop>pushButton_convert</tabstop>
+  <tabstop>checkBox_view_plot</tabstop>
+  <tabstop>pushButton_preview</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
