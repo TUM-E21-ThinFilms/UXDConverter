@@ -157,7 +157,7 @@ class Controller(QObject):
             action.run()
 
         except Exception as e:
-            self.logger(e)
+            self.logger.exception(e)
 
     def get_files(self):
         return self._files

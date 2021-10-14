@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import periodictable.constants
 
 from periodictable.xsf import xray_sld, xray_wavelength
 from periodictable.nsf import neutron_sld, neutron_scattering
@@ -45,13 +46,16 @@ class SldTabController(object):
     @staticmethod
     def _r(f):
         r = lambda x: round(x, 6)
-        if isinstance(f, list) or isinstance(f, tuple):
+        if isinstance(f, list) or isinstance(f, tuple) or isinstance(f, np.ndarray):
             return [r(fs) for fs in f]
 
         return r(f)
 
     def setup(self):
         self.ui.btn_SLD_calculate.clicked.connect(self.calculate)
+        self.ui.lE_SLD_sample_material.returnPressed.connect(self.calculate)
+        self.ui.lE_SLD_sample_density.returnPressed.connect(self.calculate)
+        self.ui.lE_SLD_sample_thickness.returnPressed.connect(self.calculate)
 
     def _log_ex(self, exception):
         print(exception)
@@ -65,12 +69,53 @@ class SldTabController(object):
         if compound is None or compound.density is None or wavelength_x is None or wavelength_n is None or thickness is None:
             return
 
-        self.calculate_penetration_depth(compound, wavelength_n, wavelength_x, thickness)
-        self.calculate_sld(compound, wavelength_n, wavelength_x)
-        self.calculate_critical_reflection(wavelength_n, wavelength_x)
+        res = neutron_scattering(compound, density=compound.density, wavelength=wavelength_n)
+
+        if res == (None, None, None):
+            hightlight(self.ui.lE_SLD_sample_material)
+            self._log_ex("missing neutron cross sections")
+            return
+
+        try:
+            self.calculate_penetration_depth(compound, wavelength_n, wavelength_x, thickness)
+            self.calculate_sld(compound, wavelength_n, wavelength_x)
+            self.calculate_cross_sections(compound, wavelength_n, wavelength_x)
+            self.calculate_critical_reflection(wavelength_n, wavelength_x)
+        except Exception as e:
+            self._log_ex(e)
+
+    def calculate_cross_sections(self, compound, wavelength_n, wavelength_x):
+        #_, xs, _ = neutron_scattering(compound, density=compound.density, wavelength=wavelength_n)
+
+        num_atoms = 0
+        xs_coh, xs_incoh, xs_abs = 0, 0, 0
+        for element, quantity in compound.atoms.items():
+            if not element.neutron.has_sld():
+                return
+
+            xs_coh += quantity * element.neutron.coherent
+            xs_incoh += quantity * element.neutron.incoherent
+            xs_abs += quantity * element.neutron.absorption
+
+            num_atoms += quantity
+
+        xs_abs /= periodictable.nsf.ABSORPTION_WAVELENGTH * wavelength_n
+
+        xs = np.array([xs_coh, xs_abs, xs_incoh])
+
+        #xs_coh, xs_abs, xs_incoh = xs
+        xs_coh, xs_abs, xs_incoh = self._r(xs / num_atoms)
+        xs_scatt = self._r(xs_coh + xs_incoh)
+        xs_total = self._r(xs_scatt + xs_abs)
+
+        self.ui.lE_xs_neutron_coh.setText(f"{xs_coh}")
+        self.ui.lE_xs_neutron_abs.setText(f"{xs_abs}")
+        self.ui.lE_xs_neutron_incoh.setText(f"{xs_incoh}")
+        self.ui.lE_xs_neutron_scatt.setText(f"{xs_scatt}")
+        self.ui.lE_xs_neutron_total.setText(f"{xs_total}")
 
     def calculate_penetration_depth(self, compound, wavelength_n, wavelength_x, thickness):
-        sld, xs, pendepth = neutron_scattering(compound, density=compound.density, wavelength=wavelength_n)
+        _, xs, _ = neutron_scattering(compound, density=compound.density, wavelength=wavelength_n)
         sld_x_real, sld_x_imag = xray_sld(compound, density=compound.density, wavelength=wavelength_x)
 
         xs_coh, xs_abs, xs_incoh = xs
