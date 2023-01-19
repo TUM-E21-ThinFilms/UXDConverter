@@ -1,4 +1,4 @@
-# Copyright (C) 2016, see AUTHORS.md
+    # Copyright (C) 2016, see AUTHORS.md
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@ import sys
 
 from setuptools import setup, find_packages
 
-requires = ['numpy', 'matplotlib', 'PyQt5', 'PyCifRW', 'pyyaml', 'periodictable']
+requires = ['numpy', 'matplotlib', 'PyQt5', 'PyCifRW', 'pyyaml', 'periodictable', 'lxml', 'skipi']
 
 setup(
     name='uxdconverter',
@@ -29,7 +29,7 @@ setup(
     description='UXDConverter',
     long_description=open('README.md').read(),
     packages=find_packages(),
-    package_data={'uxdconverter': ['transition_energy/*.dat']},
+    package_data={'uxdconverter': ['transition_energy/*.dat', 'constants/data/*.dat']},
     include_package_data=True,
     install_requires=requires
 )

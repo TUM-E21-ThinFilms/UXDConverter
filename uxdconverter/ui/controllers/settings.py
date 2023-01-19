@@ -34,6 +34,10 @@ class SettingsModel():
     def read_data_range(self):
         return self.read_float(self.ui.data_range_min), self.read_float(self.ui.data_range_max)
 
+    def set_data_range(self, data_range):
+        self.ui.data_range_min.setText(f"{data_range[0]}")
+        self.ui.data_range_max.setText(f"{data_range[1]}")
+
     def read_wavelength_error(self):
         return self.read_float(self.ui.wavelength_error)
 
@@ -43,14 +47,24 @@ class SettingsModel():
     def read_normalization_factor(self):
         return self.read_float(self.ui.normalization_factor)
 
+    def set_normalization_factor(self, factor):
+        self.ui.normalization_factor.setText(f"{factor}")
+
     def read_knife_edge(self):
         return self.read_checkbox(self.ui.knige_edge)
+
+    def set_knife_edge(self, state):
+        self.ui.knige_edge.setChecked(state)
+
 
     def read_average_data(self):
         return self.read_checkbox(self.ui.average_data)
 
     def read_convert_qz(self):
         return self.read_checkbox(self.ui.convert_qz)
+
+    def set_convert_qz(self, state):
+        self.ui.convert_qz.setChecked(state)
 
     def read_plot_log_scale(self):
         return self.read_checkbox(self.ui.plot_log_scale)
@@ -73,6 +87,14 @@ class SettingsModel():
             return DataNormalizationMethod.FACTOR
 
         raise RuntimeError("Unimplemented normalization method?")
+
+    def set_normalization_method(self, method):
+        if method == DataNormalizationMethod.MAX:
+            self.ui.normalization_max.setChecked(True)
+        if method == DataNormalizationMethod.FLANK:
+            self.ui.normalization_flank.setChecked(True)
+        if method == DataNormalizationMethod.FACTOR:
+            self.ui.normalization_manual.setChecked(True)
 
 
 class SettingsTabController(object):
@@ -115,6 +137,14 @@ class SettingsTabController(object):
         ctx.normalization_factor = self.model.read_normalization_factor()
 
         return ctx
+
+    def apply_context(self, context: MeasurementContext):
+        self.model.set_wavelength(context.wavelength)
+        self.model.set_convert_qz(context.qz_conversion)
+        self.model.set_data_range(context.qz_range)
+        self.model.set_normalization_factor(context.normalization_factor)
+        self.model.set_normalization_method(context.normalization)
+        self.model.set_knife_edge(context.knife_edge)
 
     def set_wavelength(self, wavelength):
         self.model.set_wavelength(wavelength)

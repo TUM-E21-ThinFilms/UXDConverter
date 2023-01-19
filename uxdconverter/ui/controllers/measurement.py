@@ -18,6 +18,7 @@ class MeasurementTabController(object):
         self.measurements = None # type: List[Measurements]
         self._plotting = Plotting()
         self.logger = get_logger(__name__)
+        self._settings_updated = False
 
     def setup(self) -> None:
         self._pcontroller.filesChanged.connect(self.update_measurements)
@@ -59,8 +60,16 @@ class MeasurementTabController(object):
             file.setFlags(region.flags() ^ Qt.ItemIsSelectable)
             file.setToolTip(0, measurement.file_name)
 
+    def reset(self):
+        self._settings_updated = False
+
     def update_measurements(self) -> None:
         self.measurements = [file.get_measurement() for file in self._pcontroller.get_files()]
+
+        if len(self.measurements) > 0 and self._settings_updated is False:
+            self._settings_updated = True
+            self._pcontroller._settings_controller.apply_context(self.measurements[0].get_context())
+
         self.update_measurement_view()
 
     def update_measurement_view(self) -> None:

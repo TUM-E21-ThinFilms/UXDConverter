@@ -158,7 +158,7 @@ class StressAnalysisController(object):
         item = QTreeWidgetItem(self.ui.measurements)
         item.setFlags(item.flags() | Qt.ItemIsSelectable)
         item.setText(0, f"ψ = {measurement.get_psi():.2f}")
-        item.setText(1, f"sin²(ψ) = {math.sin(math.radians(measurement.get_psi())**2):.2f}")
+        item.setText(1, f"sin²(ψ) = {math.sin(math.radians(measurement.get_psi())**2):.3f}")
         item.setData(0, Qt.UserRole, (group_index,))
         item.setData(1, Qt.UserRole, TreeBehavior.MERGED_MEASUREMENT)
 

@@ -66,23 +66,27 @@ class MeasurementMerger(AbstractMeasurementMerger):
 
         # Compute the scaling factor if the user did not specify it.
         if scaling_factor is None:
-            # scaling_factor = np.average([overlap_data_1[i][1] / overlap_data_2[i][1] for i in range(len(overlap_data_1))])
-            scaling_factor = sum([x[2] for x in overlap_data_1]) / sum([x[2] for x in overlap_data_2])
+            scaling_factors = [overlap_data_1[i][2] / overlap_data_2[i][2] for i in range(len(overlap_data_1))]
+            scaling_factor = np.average(scaling_factors)
+            scaling_factor_std = np.std(scaling_factors)
+
+            scaling_factor = sum([overlap_data_1[i][2]*overlap_data_2[i][2] for i in range(len(overlap_data_1))]) / sum([overlap_data_2[i][2]**2 for i in range(len(overlap_data_1))])
+
+            #scaling_factor = sum([x[2] for x in overlap_data_1]) / sum([x[2] for x in overlap_data_2])
             if scaling_factor < 1:
                 scaling_factor = 1.0 / scaling_factor
 
         # figure out, which measurement has bigger values in the overlapping region
         # then we scale the other measurement.
         diff = sum([overlap_data_1[i][2] - overlap_data_2[i][2] for i in range(len(overlap_data_1))])
-
+        print(f"Scaling factor std {scaling_factor_std}")
         if diff >= 0:
-            print("Scaling measurement 2 with %f by %f" % (scaling_factor, diff))
+            print(f"Scaling measurement 2 with {scaling_factor:.3f}, diff={diff}")
             # measurement 1 is bigger, hence scale measurement 2
             measurement_2.scale_y(scaling_factor)
         else:
-            print("Scaling measurement 1 with %f by %f" % (scaling_factor, diff))
+            print(f"Scaling measurement 1 with {scaling_factor:.4f}, diff={-diff}")
             measurement_1.scale_y(scaling_factor)
-
 
         data_left = []
         data_right = []

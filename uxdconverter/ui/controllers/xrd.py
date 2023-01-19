@@ -51,11 +51,19 @@ class XrdControllerTab(object):
 
         self.default_hkl_list = [(1, 0, 0), (1, 1, 0), (1, 1, 1),
                                  (2, 0, 0), (2, 1, 0), (2, 1, 1),
-                                 (2, 2, 0), (3, 0, 0), (3, 1, 0),
-                                 (3, 1, 1), (2, 2, 2), (3, 2, 0),
-                                 (3, 2, 1), (4, 0, 0), (4, 1, 0),
-                                 (3, 3, 0), (3, 3, 1), (4, 2, 0),
-                                 (4, 2, 1), (3, 3, 2), (4, 2, 2),
+                                 (2, 2, 0), (2, 2, 1), (2, 2, 2),
+
+                                 (3, 0, 0), (3, 1, 0), (3, 1, 1),
+                                 (3, 2, 0), (3, 2, 1), (3, 2, 2),
+                                 (3, 3, 0), (3, 3, 1), (3, 3, 2),
+                                 (3, 3, 3),
+
+                                 (4, 0, 0), (4, 1, 0), (4, 1, 1),
+                                 (4, 2, 0), (4, 2, 1), (4, 2, 2),
+                                 (4, 3, 0), (4, 3, 1), (4, 3, 2),
+                                 (4, 3, 3), (4, 4, 0), (4, 4, 1),
+                                 (4, 4, 2), (4, 4, 3), (4, 4, 4),
+
                                  (5, 0, 0), (5, 1, 0), (5, 1, 1)]
 
         self._updating_view = False
@@ -206,6 +214,35 @@ class XrdControllerTab(object):
 
         return parameter
 
+    def generate_table(self):
+
+        table = [[], [], [], []]
+        hkl_list = self._get_hkl_from_ui()
+
+        for col, l in enumerate([1.54059307, 1.54442756, 0.70931724, 0.71360728]):
+            diffr_ctx = DiffractionContext()
+            diffr_ctx._wavelength = l
+            diffr_ctx._bragg_order = int(self.ui.input_bragg_order.text())
+            bragg = BraggCondition(diffr_ctx, self.system)
+            self.system.set_parameter(self.get_lattice_parameters())
+
+            for row, hkl in enumerate(hkl_list):
+                try:
+                    theta = round(bragg.get_theta(hkl[0], hkl[1], hkl[2]), 5)
+                    ttheta = 2*theta
+                    table[col].append((row, f"{ttheta:.3f}"))
+                except BaseException as e:
+                    table[col].append((row, " - "))
+
+
+        #for i in range(len(table)):
+            #table[i].sort(key=lambda x: x[1])
+
+        for i, hkl in enumerate(hkl_list):
+            hkl = hkl_list[table[0][i][0]]
+            print(f"|{self._hkl_to_str(hkl)} | {table[0][i][1]} | {table[1][i][1]} | {table[2][i][1]} | {table[3][i][1]}|")
+
+
     def calculate_bragg_peak(self):
         try:
             self._updating_view = True
@@ -249,6 +286,7 @@ class XrdControllerTab(object):
                 table.setRowCount(0)
                 append_to_table(table, rows)
 
+            #self.generate_table()
         except BaseException as e:
             self.logger.exception(e)
         finally:
@@ -271,5 +309,10 @@ class XrdControllerTab(object):
 
         if len(hkl) == 0:
             return self.default_hkl_list
+
+        # sort now :)
+        self.system.set_parameter(self.get_lattice_parameters())
+        hkl.sort(key=lambda x: self.system.get_spacing(*x), reverse=True)
+        #self.system.get_spacing(h, k, l)
 
         return hkl

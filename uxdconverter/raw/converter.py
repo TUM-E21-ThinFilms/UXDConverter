@@ -39,7 +39,7 @@ class MeasurementConverter(object):
         else:
             raise RuntimeError("Unknown measurement mode")
 
-        print(measurement.get_header().get_start_chi())
+        #print(measurement.get_header().get_start_chi())
 
         if measurement.get_header().get_measurement_mode() == RangeHeader.MEASUREMENT_ROCKING_CURVE:
             data_x = 2 * theta_data + offset # we multiply by two since the division at the start was already wrong...
@@ -60,6 +60,7 @@ class MeasurementConverter(object):
         # we do not care about headers at this point
         ms = Measurement([], [list(a) for a in zip(data_x, error_x, data_y, error_y)], is_background=is_background)
         ms.set_psi(psi)
+        ms.set_counting_time(steptime)
         return ms
 
 

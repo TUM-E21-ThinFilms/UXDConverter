@@ -1,4 +1,5 @@
-from math import sqrt, asin, degrees, sin, cos, radians, ceil
+from math import sqrt, asin, degrees, sin, cos, radians, ceil, pi
+import numpy as np
 
 class InterplanarSpacing(object):
     PARAMETER_A = 'a'
@@ -236,7 +237,10 @@ class BraggCondition(object):
         d = self._spacing.get_spacing(h, k, l)
         theta = asin(n * lamb / (2 * d))  # in rad
 
-        return degrees(theta)
+        return np.rad2deg(theta)
+
+    def get_q(self, h, k, l):
+        return 2 * np.pi * self._ctx.get_bragg_order() / self._spacing.get_spacing(h, k, l)
 
     def get_lattice_spacing(self, theta):
         return self._ctx.get_bragg_order() * self._ctx.get_wavelength() / (2*sin(radians(theta)))

@@ -194,6 +194,8 @@ class Controller(QObject):
             if ret == QMessageBox.Cancel:
                 return
 
+        self._measurement_controller.reset()
+
         self.ui.lineEdit_input.setText("")
         self.ui.lineEdit_output.setText("")
         self._files = []

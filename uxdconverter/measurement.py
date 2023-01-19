@@ -1,4 +1,4 @@
-from enums import DataNormalizationMethod
+from .enums import DataNormalizationMethod
 import numpy as np
 
 
@@ -32,6 +32,14 @@ class Measurement(object):
         self._psi = 0
         self.file_name = None
         self.name = ""
+        self._pos = {}
+        self._ctx = {}
+
+    def set_counting_time(self, time):
+        self._time = time
+
+    def get_counting_time(self):
+        return self._time
 
     def is_background(self):
         return self._is_background
@@ -60,7 +68,7 @@ class Measurement(object):
         data = self._data.T
 
         # Thats the counts.
-        ind = data[2] > 0
+        ind = data[2] >= 0
 
         if any(ind) == False:
             raise RuntimeError("Data contains no positive counts?")
@@ -94,10 +102,27 @@ class Measurement(object):
         return max, min
 
     def set_psi(self, psi):
-        self._psi = psi
+        self.set_position('psi', psi)
 
     def get_psi(self) -> float:
-        return self._psi
+        return self.get_position('psi')
+
+    def set_position(self, name, value):
+        self._pos[name] = value
+
+    def get_position(self, name) -> float:
+        return self._pos.get(name, None)
+
+    def set_context(self, key, value):
+        self._ctx[key] = value
+
+    def get_context(self, key, alternative=None):
+        return self._ctx.get(key, alternative)
+
+    def as_function(self):
+        from skipi.function import Function
+
+        return Function.to_function(2*self._data[:,0], self._data[:,2])
 
 class Measurements(object):
     def __init__(self, header, measurements, backgrounds, measurement_context):
