@@ -13,6 +13,7 @@ AXIS_CHI = 'Chi'
 AXIS_Z = 'Z'
 AXIS_X = 'X'
 AXIS_Y = 'Y'
+AXIS_GAMMA = 'Gamma'
 
 class DetectorMode(Enum):
     UNKNOWN = 'unknown'
@@ -151,6 +152,7 @@ class XRDMLParser(GeneralXRDMLParser):
         z = self._get_axis(AXIS_Z, datapoints, len_counts)
         phi = self._get_axis(AXIS_PHI, datapoints, len_counts)
         chi = self._get_axis(AXIS_CHI, datapoints, len_counts)
+        gamma = self._get_axis(AXIS_GAMMA, datapoints, len_counts)
 
         measurement = self._construct_measurement(theta, counts)
 
@@ -162,6 +164,8 @@ class XRDMLParser(GeneralXRDMLParser):
             measurement.set_position('phi', phi)
         if self._is_single_value(chi):
             measurement.set_position('chi', chi)
+        if self._is_single_value(gamma):
+            measurement.set_position('gamma', gamma)
 
         measurement.set_counting_time(self._get_time(datapoints))
 
